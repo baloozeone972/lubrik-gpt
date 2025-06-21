@@ -1,0 +1,313 @@
+
+
+# API Gateway - Configuration Application
+
+spring:
+  application:
+    n: api-gateway
+  
+  profiles:
+    active: ${ENVIRONMENT:development}
+  
+  # Security Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:${USER_SERVICE_PORT:8081}/.well-known/jwks.json
+  
+  # Redis Configuration for Rate Limiting
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:redis_secure_pass_2024}
+      lettuce:
+        pool:
+          max-active: 50
+          max-idle: 10
+  
+  # Cloud Gateway Configuration
+  cloud:
+    gateway:
+      # Global CORS Configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: 
+              - "http://localhost:3000"
+              - "http://localhost:3001"
+              - "https://app.virtualcompanion.app"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            exposedHeaders:
+              - "Authorization"
+              - "X-Total-Count"
+              - "X-RateLimit-Limit"
+              - "X-RateLimit-Remaining"
+              - "X-RateLimit-Reset"
+            allowCredentials: true
+            maxAge: 3600
+      
+      # Default Filters
+      default-filters:
+        - n: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 100
+            redis-rate-limiter.burstCapacity: 200
+            key-resolver: "#{@userKeyResolver}"
+        - n: CircuitBreaker
+          args:
+            n: defaultCircuitBreaker
+            fallbackUri: forward:/fallback
+        - n: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE
+            methods: GET,POST
+            backoff:
+              firstBackoff: 10ms
+              maxBackoff: 500ms
+              factor: 2
+              basedOnPreviousValue: false
+      
+      # Service Routes
+      routes:
+        # User Service Routes
+        - id: user-service
+          uri: http://localhost:${USER_SERVICE_PORT:8081}
+          predicates:
+            - Path=/api/v1/auth/**, /api/v1/users/**
+          filters:
+            - n: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+            - RewritePath=/api/v1/(?<segment>.*), /$\{segment}
+        
+        # Character Service Routes
+        - id: character-service
+          uri: http://localhost:${CHARACTER_SERVICE_PORT:8082}
+          predicates:
+            - Path=/api/v1/characters/**
+          filters:
+            - n: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+            - RewritePath=/api/v1/(?<segment>.*), /$\{segment}
+        
+        # Conversation Service Routes
+        - id: conversation-service
+          uri: http://localhost:${CONVERSATION_SERVICE_PORT:8083}
+          predicates:
+            - Path=/api/v1/conversations/**, /ws/chat/**
+          filters:
+            - n: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 200
+                redis-rate-limiter.burstCapacity: 400
+            - RewritePath=/api/v1/(?<segment>.*), /$\{segment}
+        
+        # Media Service Routes
+        - id: media-service
+          uri: http://localhost:${MEDIA_SERVICE_PORT:8084}
+          predicates:
+            - Path=/api/v1/media/**, /api/v1/streaming/**, /api/v1/voice/**
+          filters:
+            - n: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+            - n: RequestSize
+              args:
+                maxSize: 100MB
+            - RewritePath=/api/v1/(?<segment>.*), /$\{segment}
+        
+        # Billing Service Routes
+        - id: billing-service
+          uri: http://localhost:${BILLING_SERVICE_PORT:8085}
+          predicates:
+            - Path=/api/v1/billing/**, /api/v1/subscriptions/**, /api/v1/payments/**
+          filters:
+            - n: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30
+                redis-rate-limiter.burstCapacity: 60
+            - RewritePath=/api/v1/(?<segment>.*), /$\{segment}
+        
+        # Moderation Service Routes
+        - id: moderation-service
+          uri: http://localhost:${MODERATION_SERVICE_PORT:8086}
+          predicates:
+            - Path=/api/v1/moderation/**
+          filters:
+            - n: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+            - RewritePath=/api/v1/(?<segment>.*), /$\{segment}
+        
+        # Health Check Route
+        - id: health-aggregate
+          uri: http://localhost:${server.port}
+          predicates:
+            - Path=/health/**
+          filters:
+            - SetPath=/actuator/health
+      
+      # HTTP Client Configuration
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 30s
+        pool:
+          n: gateway-pool
+          max-connections: 1000
+          max-idle-time: 30s
+          max-life-time: 60s
+          type: elastic
+        ssl:
+          use-insecure-trust-manager: ${INSECURE_SSL:false}
+      
+      # Metrics
+      metrics:
+        enabled: true
+        tags:
+          application: ${spring.application.n}
+
+server:
+  port: ${GATEWAY_PORT:8080}
+  http2:
+    enabled: true
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+  
+  # Error handling
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
+
+# Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        recordExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+        ignoreExceptions:
+          - org.springframework.security.access.AccessDeniedException
+    instances:
+      defaultCircuitBreaker:
+        baseConfig: default
+
+# Rate Limiter Configuration
+rate-limiter:
+  # User-based rate limiting
+  user-based:
+    free:
+      replenish-rate: 10
+      burst-capacity: 20
+    standard:
+      replenish-rate: 50
+      burst-capacity: 100
+    premium:
+      replenish-rate: 200
+      burst-capacity: 400
+    vip:
+      replenish-rate: 1000
+      burst-capacity: 2000
+  
+  # IP-based rate limiting (fallback)
+  ip-based:
+    replenish-rate: 20
+    burst-capacity: 40
+
+# Logging Configuration
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+    org.springframework.cloud.gateway: ${LOG_LEVEL:INFO}
+    org.springframework.security: ${LOG_LEVEL:INFO}
+    reactor.netty: ${LOG_LEVEL:INFO}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Management Endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    gateway:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.n}
+      environment: ${ENVIRONMENT:development}
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_RATE:1.0}
+
+# Custom Gateway Properties
+gateway:
+  # Authentication
+  auth:
+    jwt:
+      secret: ${JWT_SECRET:your_very_long_and_secure_jwt_secret_key_minimum_512_bits}
+      header: Authorization
+      prefix: Bearer
+      excluded-paths:
+        - /api/v1/auth/login
+        - /api/v1/auth/register
+        - /api/v1/auth/refresh
+        - /api/v1/auth/verify-email
+        - /api/v1/auth/password-reset
+        - /health/**
+        - /actuator/**
+        - /swagger-ui/**
+        - /v3/api-docs/**
+  
+  # Security Headers
+  security:
+    headers:
+      x-frame-options: DENY
+      x-content-type-options: nosniff
+      x-xss-protection: "1; mode=block"
+      content-security-policy: "default-src 'self'"
+      strict-transport-security: "max-age=31536000; includeSubDomains"
+  
+  # Request/Response Logging
+  logging:
+    enabled: ${GATEWAY_LOGGING_ENABLED:true}
+    log-headers: ${GATEWAY_LOG_HEADERS:false}
+    log-body: ${GATEWAY_LOG_BODY:false}
+    max-body-size: 1000
+
+---

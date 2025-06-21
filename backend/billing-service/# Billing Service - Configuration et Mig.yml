@@ -1,0 +1,133 @@
+# Billing Service - Configuration et Migration
+
+spring:
+  application:
+    n: billing-service
+  
+  profiles:
+    active: ${ENVIRONMENT:development}
+  
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:virtual_companion_db}?currentSchema=billing_service
+    username: ${DB_USERNAME:vc_admin}
+    password: ${DB_PASSWORD:vc_secure_pass_2024}
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  
+  flyway:
+    enabled: true
+    schemas: billing_service
+  
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+    properties:
+      org.quartz:
+        scheduler:
+          instanceId: AUTO
+        jobStore:
+          driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+
+server:
+  port: ${BILLING_SERVICE_PORT:8085}
+
+# Stripe Configuration
+stripe:
+  api-key: ${STRIPE_API_KEY:sk_test_}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_}
+  api-version: 2023-10-16
+
+# PayPal Configuration
+paypal:
+  client-id: ${PAYPAL_CLIENT_ID:}
+  client-secret: ${PAYPAL_CLIENT_SECRET:}
+  mode: ${PAYPAL_MODE:sandbox}
+
+# Pricing Configuration
+pricing:
+  plans:
+    free:
+      n: "Gratuit"
+      price: 0
+      currency: EUR
+      limits:
+        max-characters: 1
+        messages-per-day: 50
+        tokens-per-month: 50000
+    standard:
+      n: "Standard"
+      price: 9.99
+      currency: EUR
+      billing-cycles: [MONTHLY, YEARLY]
+      yearly-discount: 0.20
+      limits:
+        max-characters: 3
+        messages-per-day: 500
+        tokens-per-month: 500000
+        voice-chat-enabled: true
+    premium:
+      n: "Premium"
+      price: 19.99
+      currency: EUR
+      billing-cycles: [MONTHLY, YEARLY]
+      yearly-discount: 0.20
+      limits:
+        max-characters: unlimited
+        messages-per-day: 2000
+        tokens-per-month: 2000000
+        voice-chat-enabled: true
+        video-chat-enabled: true
+        custom-characters: 5
+    vip:
+      n: "VIP"
+      price: 39.99
+      currency: EUR
+      billing-cycles: [MONTHLY, YEARLY]
+      yearly-discount: 0.25
+      limits:
+        max-characters: unlimited
+        messages-per-day: unlimited
+        tokens-per-month: unlimited
+        all-features-enabled: true
+
+# Tax Configuration
+tax:
+  default-rate: 0.20
+  rates-by-country:
+    FR: 0.20
+    DE: 0.19
+    ES: 0.21
+    UK: 0.20
+    US: 0.00
+
+# Invoice Configuration
+invoice:
+  number-prefix: "VC"
+  number-format: "VC-{YEAR}-{NUMBER:06d}"
+  company:
+    n: "Virtual Companion SAS"
+    address: "123 rue de la Tech, 75001 Paris, France"
+    tax-id: "FR12345678901"
+    email: "billing@virtualcompanion.app"
+    website: "https://virtualcompanion.app"
+
+# Jobs Configuration
+jobs:
+  subscription-renewal:
+    enabled: true
+    cron: "0 0 2 * * ?"
+  usage-billing:
+    enabled: true
+    cron: "0 0 3 * * ?"
+  payment-retry:
+    enabled: true
+    cron: "0 0 */4 * * ?"
+  invoice-generation:
+    enabled: true
+    cron: "0 0 4 1 * ?"

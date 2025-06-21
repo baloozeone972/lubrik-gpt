@@ -1,0 +1,48 @@
+# kubernetes/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: virtual-companion
+  labels:
+    name: virtual-companion
+    environment: production
+
+---
+# kubernetes/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: virtual-companion
+data:
+  # Application configuration
+  NODE_ENV: "production"
+  API_PORT: "3000"
+  WEBSOCKET_PORT: "3001"
+  
+  # Service URLs
+  USER_SERVICE_URL: "http://user-service:8080"
+  CHARACTER_SERVICE_URL: "http://character-service:8080"
+  CONVERSATION_SERVICE_URL: "http://conversation-service:8080"
+  MEDIA_SERVICE_URL: "http://media-service:8080"
+  MODERATION_SERVICE_URL: "http://moderation-service:8080"
+  BILLING_SERVICE_URL: "http://billing-service:8080"
+  
+  # Redis configuration
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  
+  # PostgreSQL configuration
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "virtualcompanion"
+  
+  # RabbitMQ configuration
+  RABBITMQ_HOST: "rabbitmq-service"
+  RABBITMQ_PORT: "5672"
+  
+  # Monitoring
+  PROMETHEUS_ENABLED: "true"
+  JAEGER_ENABLED: "true"
+  JAEGER_AGENT_HOST: "jaeger-agent"
+  JAEGER_AGENT_PORT: "6831"

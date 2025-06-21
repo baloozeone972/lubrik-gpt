@@ -1,0 +1,252 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: character-service
+  
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:character_db}
+    username: ${DB_USER:character_user}
+    password: ${DB_PASSWORD:character_pass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        show_sql: false
+        jdbc:
+          lob:
+            non_contextual_creation: true
+    open-in-view: false
+  
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+  
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URI:http://localhost:9200}
+    username: ${ELASTICSEARCH_USER:elastic}
+    password: ${ELASTICSEARCH_PASSWORD:changeme}
+    connection-timeout: 5s
+    socket-timeout: 30s
+  
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: character-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+      auto-offset-reset: earliest
+  
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000 # 1 hour
+      cache-null-values: false
+  
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+# MinIO Configuration
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket:
+    characters: character-images
+    voices: character-voices
+  auto-create-bucket: true
+
+# AI/ML Configuration
+ai:
+  personality:
+    model-path: ${AI_MODEL_PATH:/models/personality}
+    cache-size: 100
+    temperature: 0.7
+    max-tokens: 150
+  
+  djl:
+    engine: PyTorch
+    model-url: ${DJL_MODEL_URL:https://djl-ai.s3.amazonaws.com/mlrepo/model/cv/image_classification/ai/djl/pytorch/resnet/0.0.1/resnet18.zip}
+    gpu-enabled: ${GPU_ENABLED:false}
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.virtualcompanion.characterservice: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.elasticsearch.client: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/character-service.log
+    max-size: 10MB
+    max-history: 30
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+      environment: ${ENVIRONMENT:development}
+
+# Character Service Specific Configuration
+character:
+  defaults:
+    max-characters-per-user: 10
+    max-free-characters: 3
+    max-premium-characters: 50
+    max-image-size: 5242880 # 5MB
+    allowed-image-types: 
+      - image/jpeg
+      - image/png
+      - image/webp
+  
+  personality:
+    traits:
+      - openness
+      - conscientiousness
+      - extraversion
+      - agreeableness
+      - neuroticism
+    min-value: 0.0
+    max-value: 1.0
+  
+  categories:
+    - FANTASY
+    - REALISTIC
+    - ANIME
+    - HISTORICAL
+    - FUTURISTIC
+    - CELEBRITY
+    - CUSTOM
+  
+  voice:
+    providers:
+      - name: elevenlabs
+        enabled: ${ELEVENLABS_ENABLED:false}
+        api-key: ${ELEVENLABS_API_KEY:}
+      - name: azure
+        enabled: ${AZURE_TTS_ENABLED:false}
+        api-key: ${AZURE_TTS_API_KEY:}
+        region: ${AZURE_TTS_REGION:eastus}
+    default-provider: azure
+    max-voice-samples: 5
+  
+  search:
+    index-name: characters
+    max-results: 100
+    default-page-size: 20
+    facets:
+      - category
+      - personality_dominant
+      - age_range
+      - gender
+      - popularity
+
+# Security Configuration
+security:
+  jwt:
+    public-key: ${JWT_PUBLIC_KEY}
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - https://app.virtualcompanion.com
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - Authorization
+      - Content-Type
+      - X-Requested-With
+    allow-credentials: true
+
+# Rate Limiting
+rate-limiting:
+  enabled: true
+  limits:
+    - endpoint: /api/v1/characters/generate
+      requests-per-minute: 10
+    - endpoint: /api/v1/characters/*/image/upload
+      requests-per-minute: 5
+    - endpoint: /api/v1/characters/search
+      requests-per-minute: 60
+
+# Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      elasticsearch:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 10
+      ai-service:
+        failure-rate-threshold: 60
+        wait-duration-in-open-state: 60s
+        sliding-window-size: 5
+      minio:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 20s
+        sliding-window-size: 10
+
+# Thread Pool Configuration
+thread-pool:
+  ai-processing:
+    core-size: 4
+    max-size: 10
+    queue-capacity: 100
+    thread-name-prefix: ai-processor-
+  image-processing:
+    core-size: 2
+    max-size: 6
+    queue-capacity: 50
+    thread-name-prefix: image-processor-

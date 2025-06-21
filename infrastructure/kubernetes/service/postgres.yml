@@ -1,0 +1,54 @@
+# kubernetes/services/postgres.yaml
+# apiVersion: v1
+# kind: Service
+# metadata:
+#  name: postgres-service
+#  namespace: virtual-companion
+# pec:
+#   selector:
+#     app: postgres
+#   ports:
+#   - port: 5432
+#     targetPort: 5432
+#   type: ClusterIP
+
+
+
+
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: virtual-companion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        command:
+        - redis-server
+        - --maxmemory
+        - "2gb"
+        - --maxmemory-policy
+        - "allkeys-lru"
+        - --save
+        - ""
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "1000m"

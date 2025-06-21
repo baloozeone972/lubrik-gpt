@@ -1,0 +1,247 @@
+spring:
+  application:
+    n: conversation-service
+  
+  profiles:
+    active: ${ENVIRONMENT:development}
+  
+  # Reactive Web Configuration
+  webflux:
+    base-path: /api/v1
+  
+  # PostgreSQL R2DBC Configuration
+  r2dbc:
+    url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:virtual_companion_db}?schema=conversation_service
+    username: ${DB_USERNAME:vc_admin}
+    password: ${DB_PASSWORD:vc_secure_pass_2024}
+    pool:
+      initial-size: 10
+      max-size: 30
+      max-idle-time: 30m
+      validation-query: SELECT 1
+  
+  # JPA Configuration (for Flyway)
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:virtual_companion_db}?currentSchema=conversation_service
+    username: ${DB_USERNAME:vc_admin}
+    password: ${DB_PASSWORD:vc_secure_pass_2024}
+  
+  # MongoDB Configuration
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DB:virtual_companion_messages}
+      auto-index-creation: true
+  
+  # Redis Reactive Configuration
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:redis_secure_pass_2024}
+    lettuce:
+      pool:
+        max-active: 50
+        max-idle: 10
+        min-idle: 5
+  
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      compression-type: snappy
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:conversation-service-group}
+      auto-offset-reset: ${KAFKA_AUTO_OFFSET_RESET:latest}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.virtualcompanion.*"
+    streams:
+      application-id: conversation-stream-processor
+      properties:
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+  
+  # Flyway Migration
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    schemas: conversation_service
+
+server:
+  port: ${CONVERSATION_SERVICE_PORT:8083}
+  http2:
+    enabled: true
+
+# AI/LLM Configuration
+ai:
+  # Local Model Configuration
+  local:
+    enabled: ${AI_LOCAL_ENABLED:true}
+    model-path: ${AI_MODEL_PATH:/models/llama2-7b}
+    max-tokens: ${AI_MAX_TOKENS:500}
+    temperature: ${AI_TEMPERATURE:0.7}
+    top-p: ${AI_TOP_P:0.9}
+    context-window: 4096
+    batch-size: 8
+    
+  # OpenAI Configuration (Fallback/Moderation)
+  openai:
+    enabled: ${OPENAI_ENABLED:false}
+    api-key: ${OPENAI_API_KEY:}
+    model: ${OPENAI_MODEL:gpt-3.5-turbo}
+    max-retries: 3
+    timeout: 30s
+    
+  # Vector Database (Milvus) Configuration
+  vector-db:
+    host: ${MILVUS_HOST:localhost}
+    port: ${MILVUS_PORT:19530}
+    collection-n: conversation_embeddings
+    dimension: 1536
+    index-type: IVF_FLAT
+    metric-type: L2
+    
+  # Memory Management
+  memory:
+    short-term-capacity: 10
+    long-term-threshold: 0.7
+    cleanup-interval: 1h
+    embedding-model: sentence-transformers/all-MiniLM-L6-v2
+
+# WebSocket Configuration
+websocket:
+  endpoint: /ws/chat
+  allowed-origins: ${WEBSOCKET_ALLOWED_ORIGINS:http://localhost:3000}
+  message-size-limit: 65536
+  send-timeout: 20s
+  heartbeat-interval: 25s
+  max-sessions-per-user: 5
+
+# Rate Limiting Configuration
+rate-limiting:
+  enabled: true
+  type: sliding-window
+  limits:
+    free:
+      messages-per-hour: 10
+      messages-per-day: 50
+      tokens-per-hour: 10000
+      tokens-per-day: 50000
+    standard:
+      messages-per-hour: 50
+      messages-per-day: 500
+      tokens-per-hour: 50000
+      tokens-per-day: 500000
+    premium:
+      messages-per-hour: 200
+      messages-per-day: 2000
+      tokens-per-hour: 200000
+      tokens-per-day: 2000000
+    vip:
+      messages-per-hour: -1  # unlimited
+      messages-per-day: -1
+      tokens-per-hour: -1
+      tokens-per-day: -1
+
+# Conversation Configuration
+conversation:
+  # Message Processing
+  message:
+    max-length: 4000
+    min-length: 1
+    typing-indicator-delay: 500ms
+    processing-timeout: 30s
+    
+  # Context Management
+  context:
+    max-history-size: 50
+    summary-threshold: 100
+    summary-model: facebook/bart-large-cnn
+    
+  # Memory Settings
+  memory:
+    importance-threshold: 0.6
+    max-memories-per-conversation: 1000
+    embedding-batch-size: 32
+    
+  # Safety Settings
+  safety:
+    content-filter-enabled: true
+    toxicity-threshold: 0.7
+    moderation-endpoint: /api/v1/moderation/check
+    blocked-topics: []
+    
+  # Analytics
+  analytics:
+    enabled: true
+    batch-size: 100
+    flush-interval: 5m
+    retention-days: 90
+
+# Monitoring Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.n}
+      environment: ${ENVIRONMENT:development}
+
+# Logging Configuration
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+    com.virtualcompanion: ${LOG_LEVEL:INFO}
+    org.springframework.data.mongodb: ${LOG_LEVEL:INFO}
+    reactor.netty: ${LOG_LEVEL:INFO}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Kafka Topics
+kafka:
+  topics:
+    conversation-events: conversation-events
+    message-events: message-events
+    ai-processing: ai-processing
+    moderation-requests: moderation-requests
+    analytics-events: analytics-events
+
+# Cache Configuration
+cache:
+  # Character Cache
+  character:
+    ttl: 1h
+    max-size: 1000
+    
+  # Conversation Context Cache
+  context:
+    ttl: 30m
+    max-size: 10000
+    
+  # AI Response Cache
+  ai-response:
+    enabled: true
+    ttl: 5m
+    max-size: 5000
+    similarity-threshold: 0.95
+
+# Feature Flags
+features:
+  voice-messages: ${FEATURE_VOICE_MESSAGES:true}
+  video-chat: ${FEATURE_VIDEO_CHAT:false}
+  multi-language: ${FEATURE_MULTI_LANGUAGE:true}
+  emotion-detection: ${FEATURE_EMOTION_DETECTION:true}
+  memory-system: ${FEATURE_MEMORY_SYSTEM:true}
+  streaming-responses: ${FEATURE_STREAMING_RESPONSES:true}

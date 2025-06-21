@@ -1,0 +1,382 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 .AppleSystemUIFontMonospaced-Regular;}
+{\colortbl;\red255\green255\blue255;\red249\green248\blue242;\red36\green36\blue35;}
+{\*\expandedcolortbl;;\cssrgb\c98039\c97647\c96078;\cssrgb\c18824\c18824\c18039;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs24 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 # Prompt de D\'e9veloppement - Application de Compagnon Virtuel (Java 21)\
+\
+## Vue d'ensemble du Projet\
+\
+D\'e9velopper une application compl\'e8te de compagnon virtuel utilisant Java 21, destin\'e9e \'e0 un usage commercial avec conformit\'e9 l\'e9gale stricte. L'application doit offrir des interactions personnalis\'e9es avec des personnages IA diversifi\'e9s, incluant des fonctionnalit\'e9s web et mobile.\
+\
+## Architecture Technique Globale\
+\
+### 1. Stack Technologique (Licences Gratuites)\
+```\
+Backend:\
+- Java 21 (OpenJDK) + Spring Boot 3.x\
+- Spring Security 6.x pour l'authentification\
+- PostgreSQL (base de donn\'e9es principale)\
+- Redis (cache et sessions)\
+- Apache Kafka (messaging asynchrone)\
+- Elasticsearch (recherche et analytics)\
+\
+Frontend Web:\
+- React 18+ avec TypeScript\
+- Material-UI ou Tailwind CSS\
+- WebRTC pour le chat vid\'e9o\
+- Socket.io pour temps r\'e9el\
+\
+Mobile:\
+- React Native ou Flutter (gratuit)\
+- Expo pour le d\'e9ploiement simplifi\'e9\
+\
+Infrastructure:\
+- Docker + Kubernetes\
+- NGINX (proxy inverse)\
+- Prometheus + Grafana (monitoring)\
+- Jenkins ou GitLab CI/CD\
+```\
+\
+### 2. Modules Principaux \'e0 D\'e9velopper\
+\
+#### A. Module d'Authentification et Gestion Utilisateur\
+```java\
+// Sp\'e9cifications techniques\
+- Syst\'e8me d'inscription avec v\'e9rification d'\'e2ge obligatoire\
+- Authentification multi-facteurs (2FA)\
+- Gestion des sessions s\'e9curis\'e9es\
+- V\'e9rification d'identit\'e9 selon les juridictions\
+- Syst\'e8me de consentement explicite par paliers\
+```\
+\
+#### B. Moteur de Personnages Virtuels\
+```java\
+// Caract\'e9ristiques \'e0 impl\'e9menter\
+- Base de donn\'e9es de personnalit\'e9s (traits psychologiques)\
+- Syst\'e8me de morphologies personnalisables\
+- Diversit\'e9 ethnique et culturelle\
+- Moteur de dialogue bas\'e9 sur des mod\'e8les locaux\
+- Syst\'e8me de m\'e9moire conversationnelle\
+- Adaptation comportementale selon les interactions\
+```\
+\
+#### C. Syst\'e8me d'Abonnements Multi-niveaux\
+```java\
+// Structure des abonnements\
+Niveau Gratuit:\
+- Conversations texte limit\'e9es (10/jour)\
+- 1 personnage pr\'e9d\'e9fini\
+- Pas d'acc\'e8s aux contenus premium\
+\
+Niveau Standard (\'809.99/mois):\
+- Conversations illimit\'e9es\
+- 3 personnages personnalisables\
+- Chat vocal de base\
+- Historique de 30 jours\
+\
+Niveau Premium (\'8019.99/mois):\
+- Tous les personnages disponibles\
+- Chat vid\'e9o HD\
+- Personnalisation avanc\'e9e\
+- Contenu premium (selon l\'e9gislation locale)\
+- Historique illimit\'e9\
+\
+Niveau VIP (\'8039.99/mois):\
+- Personnages exclusifs\
+- Fonctionnalit\'e9s exp\'e9rimentales\
+- Support prioritaire\
+- API d'int\'e9gration limit\'e9e\
+```\
+\
+#### D. Moteur Vid\'e9o et Chat Temps R\'e9el\
+```java\
+// Technologies et fonctionnalit\'e9s\
+- WebRTC pour streaming bidirectionnel\
+- Serveur media bas\'e9 sur Kurento ou Janus\
+- G\'e9n\'e9ration vid\'e9o procedural (avatars 3D)\
+- Lip-sync intelligent\
+- Effets visuels param\'e9trables\
+- Compression adaptative selon bande passante\
+- Enregistrement s\'e9curis\'e9 (chiffr\'e9)\
+```\
+\
+### 3. Architecture Microservices\
+\
+#### Services Core\
+```yaml\
+user-service:\
+  responsabilit\'e9s:\
+    - Gestion comptes utilisateurs\
+    - V\'e9rification d'\'e2ge/identit\'e9\
+    - Pr\'e9f\'e9rences et param\'e8tres\
+  technologies: Spring Boot + JPA\
+\
+character-service:\
+  responsabilit\'e9s:\
+    - CRUD personnages\
+    - Moteur de personnalit\'e9s\
+    - Adaptation comportementale\
+  technologies: Spring Boot + ML models\
+\
+conversation-service:\
+  responsabilit\'e9s:\
+    - Historique des conversations\
+    - Moteur de dialogue\
+    - Analyse sentiment\
+  technologies: Spring Boot + NLP\
+\
+media-service:\
+  responsabilit\'e9s:\
+    - G\'e9n\'e9ration vid\'e9o/audio\
+    - Streaming temps r\'e9el\
+    - Stockage m\'e9dia s\'e9curis\'e9\
+  technologies: Java + FFmpeg + WebRTC\
+\
+billing-service:\
+  responsabilit\'e9s:\
+    - Gestion abonnements\
+    - Paiements s\'e9curis\'e9s\
+    - Facturation automatique\
+  technologies: Spring Boot + Stripe API\
+\
+content-moderation-service:\
+  responsabilit\'e9s:\
+    - Filtrage contenu inappropri\'e9\
+    - Compliance l\'e9gale\
+    - Reporting automatique\
+  technologies: Spring Boot + mod\'e8les ML\
+```\
+\
+### 4. Base de Donn\'e9es et Mod\'e9lisation\
+\
+#### Sch\'e9ma Principal\
+```sql\
+-- Tables essentielles\
+Users (id, email, age_verified, subscription_level, created_at)\
+Characters (id, name, personality_traits, appearance_config, voice_config)\
+Conversations (id, user_id, character_id, content, timestamp, content_type)\
+Subscriptions (id, user_id, plan_type, status, expires_at)\
+User_Preferences (id, user_id, content_filters, interaction_limits)\
+Legal_Compliance (id, user_id, jurisdiction, consent_level, verified_at)\
+```\
+\
+### 5. Fonctionnalit\'e9s d'Engagement Utilisateur\
+\
+#### Syst\'e8me de Gamification\
+```java\
+// M\'e9caniques d'engagement\
+- Points d'exp\'e9rience par interaction\
+- D\'e9blocage progressif de fonctionnalit\'e9s\
+- \'c9v\'e9nements saisonniers\
+- D\'e9fis quotidiens/hebdomadaires\
+- Syst\'e8me de collection (tenues, accessoires)\
+- Partage social s\'e9curis\'e9 (sans contenu priv\'e9)\
+```\
+\
+#### Analytics et Personnalisation\
+```java\
+// Collecte de donn\'e9es (anonymis\'e9es)\
+- Patterns d'utilisation\
+- Pr\'e9f\'e9rences conversationnelles\
+- Temps d'engagement par session\
+- Feedback utilisateur automatique\
+- A/B testing pour optimisation UX\
+```\
+\
+### 6. Conformit\'e9 L\'e9gale et S\'e9curit\'e9\
+\
+#### V\'e9rification d'\'c2ge\
+```java\
+// Syst\'e8me multi-niveaux\
+Niveau 1: D\'e9claration simple (13+)\
+Niveau 2: V\'e9rification email + t\'e9l\'e9phone (16+)\
+Niveau 3: Document d'identit\'e9 + biom\'e9trie (18+)\
+Niveau 4: V\'e9rification bancaire (21+, selon juridiction)\
+\
+// Stockage s\'e9curis\'e9\
+- Chiffrement AES-256 pour donn\'e9es sensibles\
+- Conformit\'e9 GDPR/CCPA\
+- Audit trail complet\
+- Retention policies automatis\'e9es\
+```\
+\
+#### Mod\'e9ration de Contenu\
+```java\
+// Filtres automatiques\
+- D\'e9tection contenu inappropri\'e9 (images/texte)\
+- Classification automatique par \'e2ge\
+- Escalade vers mod\'e9ration humaine\
+- Blacklist/whitelist dynamiques\
+- Reporting utilisateur int\'e9gr\'e9\
+```\
+\
+### 7. Tests et Qualit\'e9\
+\
+#### Framework de Tests\
+```java\
+// Couverture de tests (>90%)\
+Tests Unitaires:\
+- JUnit 5 + Mockito\
+- TestContainers pour DB\
+- WireMock pour services externes\
+\
+Tests d'Int\'e9gration:\
+- Spring Boot Test\
+- RestAssured pour APIs\
+- Selenium pour UI\
+\
+Tests de Performance:\
+- JMeter pour load testing\
+- K6 pour stress testing\
+- Profiling avec JProfiler\
+\
+Tests de S\'e9curit\'e9:\
+- OWASP ZAP automatis\'e9\
+- Penetration testing r\'e9gulier\
+- Audit d\'e9pendances (Snyk)\
+```\
+\
+#### Syst\'e8me de Test Comportemental IA\
+```java\
+// Test des mod\'e8les de personnages\
+Sc\'e9narios de Test:\
+- Coh\'e9rence personnalit\'e9\
+- R\'e9ponses appropri\'e9es selon contexte\
+- Respect des limites utilisateur\
+- Gestion des demandes inappropri\'e9es\
+- Performance conversationnelle\
+\
+M\'e9triques Qualit\'e9:\
+- Score de satisfaction utilisateur\
+- Temps de r\'e9ponse moyen\
+- Pr\'e9cision des r\'e9ponses\
+- Taux d'escalade mod\'e9ration\
+```\
+\
+### 8. D\'e9ploiement et Infrastructure\
+\
+#### Architecture Cloud-Native\
+```yaml\
+Production Environment:\
+  compute:\
+    - Kubernetes cluster (3+ nodes)\
+    - Auto-scaling horizontal\
+    - Load balancing intelligent\
+  \
+  storage:\
+    - PostgreSQL cluster (HA)\
+    - Redis cluster (cache distribu\'e9)\
+    - S3-compatible object storage\
+  \
+  security:\
+    - WAF (Web Application Firewall)\
+    - DDoS protection\
+    - SSL/TLS certificates automatiques\
+    - VPN pour acc\'e8s admin\
+  \
+  monitoring:\
+    - Logs centralis\'e9s (ELK Stack)\
+    - M\'e9triques temps r\'e9el\
+    - Alertes automatiques\
+    - Health checks\
+```\
+\
+### 9. Strat\'e9gie de Lancement\
+\
+#### Phase 1: MVP (3 mois)\
+- Application web basique\
+- 5 personnages pr\'e9d\'e9finis\
+- Chat texte uniquement\
+- Syst\'e8me d'abonnement simple\
+- V\'e9rification d'\'e2ge de base\
+\
+#### Phase 2: Extension (3 mois)\
+- Application mobile\
+- Chat vocal\
+- Personnalisation avanc\'e9e\
+- Syst\'e8me de gamification\
+- Analytics utilisateur\
+\
+#### Phase 3: Premium (3 mois)\
+- Chat vid\'e9o temps r\'e9el\
+- Contenu premium (juridictions l\'e9gales)\
+- IA comportementale avanc\'e9e\
+- Int\'e9grations tierces\
+- Marketplace de contenu\
+\
+### 10. Consid\'e9rations L\'e9gales Critiques\
+\
+#### Compliance Internationale\
+```java\
+// Adaptations par juridiction\
+\'c9tats-Unis: COPPA, Section 230, state laws\
+Europe: GDPR, Digital Services Act\
+Asie-Pacifique: Local content regulations\
+Am\'e9rique Latine: Privacy laws specifiques\
+\
+// Syst\'e8me de geo-blocking automatique\
+- D\'e9tection IP/localisation\
+- Restrictions de contenu par r\'e9gion\
+- Interface l\'e9gale adapt\'e9e\
+- Terms of Service localis\'e9s\
+```\
+\
+#### Protection des Mineurs\
+```java\
+// Mesures obligatoires\
+- V\'e9rification d'\'e2ge renforc\'e9e\
+- Filtrage contenu strict (<18 ans)\
+- Surveillance parentale (option)\
+- Signalement automatique\
+- Formation \'e9quipes mod\'e9ration\
+```\
+\
+### 11. Roadmap Technique Post-Lancement\
+\
+#### Optimisations IA\
+- Int\'e9gration mod\'e8les LLM locaux (Llama, Mistral)\
+- Training personnalis\'e9 sur donn\'e9es utilisateur\
+- Emotional AI pour r\'e9ponses empathiques\
+- Voice cloning \'e9thique\
+- R\'e9alit\'e9 augment\'e9e (AR) pour interactions\
+\
+#### Expansions Fonctionnelles\
+- Marketplace de personnages communautaire\
+- API d\'e9veloppeurs tiers\
+- Int\'e9gration r\'e9seaux sociaux\
+- VR support (Meta Quest, etc.)\
+- Multi-plateforme (Smart TV, assistant vocal)\
+\
+### 12. Budget et Timeline Estimatifs\
+\
+#### \'c9quipe Recommand\'e9e (12 mois)\
+- 1 Lead Developer (Full-stack Java)\
+- 2 Backend Developers (Spring Boot)\
+- 2 Frontend Developers (React/React Native)\
+- 1 DevOps Engineer\
+- 1 ML/AI Engineer\
+- 1 QA Engineer\
+- 1 UI/UX Designer\
+- 1 Legal/Compliance Specialist\
+\
+#### Co\'fbts Infrastructure Mensuels\
+- Cloud hosting: \'802,000-5,000\
+- CDN et stockage: \'80500-1,500\
+- Services tiers (paiement, etc.): \'801,000-3,000\
+- Monitoring et s\'e9curit\'e9: \'80500-1,000\
+- **Total mensuel: \'804,000-10,500**\
+\
+## Notes Importantes de D\'e9veloppement\
+\
+1. **Priorit\'e9 Absolue**: Conformit\'e9 l\'e9gale et protection des utilisateurs\
+2. **Architecture**: Modulaire et scalable d\'e8s le d\'e9but\
+3. **S\'e9curit\'e9**: Security-by-design, pas d'ajout post-d\'e9veloppement\
+4. **Performance**: Optimisation continue, monitoring proactif\
+5. **\'c9thique**: D\'e9veloppement responsable avec guidelines claires\
+\
+Cette sp\'e9cification technique constitue la base pour un d\'e9veloppement professionnel d'une application de compagnon virtuel conforme aux standards commerciaux et l\'e9gaux internationaux.}

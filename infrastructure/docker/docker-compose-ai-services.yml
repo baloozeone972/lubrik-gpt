@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # LLM Service - Ollama
+  ollama:
+    image: ollama/ollama:latest
+    container_name: vc-ollama
+    volumes:
+      - ./ai-models/ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_MODELS=/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Alternative: LocalAI (Compatible OpenAI API)
+  localai:
+    image: quay.io/go-skynet/local-ai:latest
+    container_name: vc-localai
+    volumes:
+      - ./ai-models/localai:/models
+    ports:
+      - "8080:8080"
+    environment:
+      - THREADS=4
+      - CONTEXT_SIZE=4096
+      - MODELS_PATH=/models
+    command: >
+      --models-path /models
+      --context-size 4096
+      --threads 4
+
+  # Stable Diffusion WebUI
+  stable-diffusion:
+    image: ghcr.io/stable-diffusion-webui/stable-diffusion-webui:latest
+    container_name: vc-stable-diffusion
+    volumes:
+      - ./ai-models/stable-diffusion:/data
+    ports:
+      - "7860:7860"
+    environment:
+      - COMMANDLINE_ARGS=--api --listen --no-half
+      - CUDA_VISIBLE_DEVICES=0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Coqui TTS Service
+  coqui-tts:
+    build:
+      context: ./services/tts
+      dockerfile: Dockerfile.coqui
+    container_name: vc-coqui-tts
+    volumes:
+      - ./ai-models/coqui:/models
+    ports:
+      - "5002:5002"
+    environment:
+      - COQUI_MODEL=tts_models/multilingual/multi-dataset/xtts_v2
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Video Generation Service (Python)
+  video-generation:
+    build:
+      context: ./services/video-gen
+      dockerfile: Dockerfile
+    container_name: vc-video-gen
+    volumes:
+      - ./ai-models/video:/models
+      - ./generated/videos:/output
+    ports:
+      - "5003:5003"
+    environment:
+      - MODEL_PATH=/models/stable-video-diffusion
+      - CUDA_VISIBLE_DEVICES=0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Redis pour cache des générations
+  redis-ai-cache:
+    image: redis:7-alpine
+    container_name: vc-redis-ai
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-ai-data:/data
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+
+  # MinIO pour stockage des modèles et résultats
+  minio-ai:
+    image: minio/minio:latest
+    container_name: vc-minio-ai
+    ports:
+      - "9001:9001"
+      - "9002:9002"
+    volumes:
+      - minio-ai-data:/data
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin123
+    command: server /data --console-address ":9002"
+
+volumes:
+  redis-ai-data:
+  minio-ai-data:
+
+networks:
+  default:
+    name: vc-network
+    external: true

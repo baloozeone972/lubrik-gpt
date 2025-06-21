@@ -1,0 +1,11 @@
+# kubernetes/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: virtual-companion
+  labels:
+    name: virtual-companion
+    environment: production
+
+---
+
