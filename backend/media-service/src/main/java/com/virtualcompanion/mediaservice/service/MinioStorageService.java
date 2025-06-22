@@ -1,27 +1,27 @@
 package com.virtualcompanion.mediaservice.service;
 
 public class MinioStorageService implements StorageService {
-    
+
     private final MinioClient minioClient;
-    
+
     @Value("${minio.buckets.media}")
     private String mediaBucket;
-    
+
     @Value("${minio.endpoint}")
     private String minioEndpoint;
-    
+
     @Value("${minio.auto-create-bucket}")
     private boolean autoCreateBucket;
-    
+
     public MinioStorageService(@Value("${minio.endpoint}") String endpoint,
-                              @Value("${minio.access-key}") String accessKey,
-                              @Value("${minio.secret-key}") String secretKey) {
+                               @Value("${minio.access-key}") String accessKey,
+                               @Value("${minio.secret-key}") String secretKey) {
         this.minioClient = MinioClient.builder()
                 .endpoint(endpoint)
                 .credentials(accessKey, secretKey)
                 .build();
     }
-    
+
     @PostConstruct
     public void init() {
         if (autoCreateBucket) {
@@ -40,7 +40,7 @@ public class MinioStorageService implements StorageService {
             }
         }
     }
-    
+
     @Override
     public String uploadFile(MultipartFile file, String path) {
         try {
@@ -52,21 +52,21 @@ public class MinioStorageService implements StorageService {
                             .contentType(file.getContentType())
                             .build()
             );
-            
+
             log.info("File uploaded successfully: {}", path);
             return getPublicUrl(path);
-            
+
         } catch (Exception e) {
             log.error("Failed to upload file: {}", e.getMessage());
             throw new StorageException("Failed to upload file: " + e.getMessage());
         }
     }
-    
+
     @Override
     public String uploadBytes(byte[] data, String path) {
         try {
             ByteArrayInputStream stream = new ByteArrayInputStream(data);
-            
+
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(mediaBucket)
@@ -74,16 +74,16 @@ public class MinioStorageService implements StorageService {
                             .stream(stream, data.length, -1)
                             .build()
             );
-            
+
             log.info("Bytes uploaded successfully: {}", path);
             return getPublicUrl(path);
-            
+
         } catch (Exception e) {
             log.error("Failed to upload bytes: {}", e.getMessage());
             throw new StorageException("Failed to upload bytes: " + e.getMessage());
         }
     }
-    
+
     @Override
     public byte[] getFileContent(String path) {
         try {
@@ -93,15 +93,15 @@ public class MinioStorageService implements StorageService {
                             .object(path)
                             .build()
             );
-            
+
             return stream.readAllBytes();
-            
+
         } catch (Exception e) {
             log.error("Failed to get file content: {}", e.getMessage());
             throw new StorageException("Failed to get file content: " + e.getMessage());
         }
     }
-    
+
     @Override
     public void deleteFile(String path) {
         try {
@@ -111,15 +111,15 @@ public class MinioStorageService implements StorageService {
                             .object(path)
                             .build()
             );
-            
+
             log.info("File deleted successfully: {}", path);
-            
+
         } catch (Exception e) {
             log.error("Failed to delete file: {}", e.getMessage());
             throw new StorageException("Failed to delete file: " + e.getMessage());
         }
     }
-    
+
     @Override
     public String getSignedUrl(String path) {
         try {
@@ -136,7 +136,7 @@ public class MinioStorageService implements StorageService {
             return getPublicUrl(path);
         }
     }
-    
+
     @Override
     public boolean fileExists(String path) {
         try {
@@ -151,7 +151,7 @@ public class MinioStorageService implements StorageService {
             return false;
         }
     }
-    
+
     @Override
     public long getFileSize(String path) {
         try {
@@ -167,7 +167,7 @@ public class MinioStorageService implements StorageService {
             return 0;
         }
     }
-    
+
     private String getPublicUrl(String path) {
         return minioEndpoint + "/" + mediaBucket + "/" + path;
     }

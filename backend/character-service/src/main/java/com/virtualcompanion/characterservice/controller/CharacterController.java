@@ -17,9 +17,9 @@ public class CharacterController {
     public Mono<ResponseEntity<CharacterResponseDto>> createCharacter(
             @Valid @RequestBody CharacterCreateDto createDto,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         log.info("Creating new character by user: {}", currentUser.getId());
-        
+
         return characterService.createCharacter(createDto, currentUser.getId())
                 .map(character -> ResponseEntity.status(HttpStatus.CREATED).body(character))
                 .doOnSuccess(result -> log.info("Character created: {}", result.getBody().getId()))
@@ -31,7 +31,7 @@ public class CharacterController {
     public Mono<CharacterResponseDto> getCharacter(
             @PathVariable String characterId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return characterService.getCharacterById(characterId, currentUser.getId())
                 .doOnSuccess(character -> analyticsService.trackView(characterId, currentUser.getId()));
     }
@@ -43,7 +43,7 @@ public class CharacterController {
             @PathVariable String characterId,
             @Valid @RequestBody CharacterUpdateDto updateDto,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return characterService.updateCharacter(characterId, updateDto, currentUser.getId())
                 .doOnSuccess(result -> log.info("Character updated: {}", characterId));
     }
@@ -54,7 +54,7 @@ public class CharacterController {
     public Mono<Void> deleteCharacter(
             @PathVariable String characterId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return characterService.deleteCharacter(characterId, currentUser.getId())
                 .doOnSuccess(v -> log.info("Character deleted: {}", characterId));
     }
@@ -75,7 +75,7 @@ public class CharacterController {
             @RequestParam(defaultValue = "POPULARITY") String sortBy,
             Pageable pageable,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         CharacterSearchCriteria criteria = CharacterSearchCriteria.builder()
                 .query(query)
                 .categories(categories)
@@ -89,7 +89,7 @@ public class CharacterController {
                 .userId(currentUser.getId())
                 .userSubscriptionLevel(currentUser.getSubscriptionLevel())
                 .build();
-        
+
         return searchService.searchCharacters(criteria, pageable);
     }
 
@@ -98,7 +98,7 @@ public class CharacterController {
     public Flux<CharacterTrendingDto> getTrendingCharacters(
             @RequestParam(defaultValue = "7") int days,
             @RequestParam(defaultValue = "10") int limit) {
-        
+
         return characterService.getTrendingCharacters(days, limit)
                 .take(limit);
     }
@@ -108,7 +108,7 @@ public class CharacterController {
     public Flux<CharacterRecommendationDto> getRecommendations(
             @CurrentUser UserPrincipal currentUser,
             @RequestParam(defaultValue = "10") int limit) {
-        
+
         return characterService.getPersonalizedRecommendations(currentUser.getId(), limit)
                 .take(limit);
     }
@@ -122,7 +122,7 @@ public class CharacterController {
             @PathVariable String characterId,
             @RequestBody PersonalityInputDto input,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return personalityEngine.analyzeAndGeneratePersonality(characterId, input)
                 .timeout(Duration.ofSeconds(30));
     }
@@ -138,7 +138,7 @@ public class CharacterController {
     public Mono<PersonalityTestResultDto> testPersonalityBehavior(
             @PathVariable String characterId,
             @RequestBody PersonalityTestDto testDto) {
-        
+
         return personalityEngine.testPersonalityResponse(characterId, testDto);
     }
 
@@ -152,7 +152,7 @@ public class CharacterController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) String type,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return imageService.uploadCharacterImage(characterId, file, type);
     }
 
@@ -163,7 +163,7 @@ public class CharacterController {
             @PathVariable String characterId,
             @RequestBody ImageGenerationRequestDto request,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return imageService.generateCharacterImage(characterId, request)
                 .timeout(Duration.ofMinutes(2));
     }
@@ -183,7 +183,7 @@ public class CharacterController {
             @PathVariable String characterId,
             @RequestBody VoiceConfigRequestDto request,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return voiceService.configureCharacterVoice(characterId, request);
     }
 
@@ -194,7 +194,7 @@ public class CharacterController {
             @PathVariable String characterId,
             @RequestParam("samples") List<MultipartFile> audioSamples,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return voiceService.cloneVoice(characterId, audioSamples)
                 .timeout(Duration.ofMinutes(5));
     }
@@ -204,7 +204,7 @@ public class CharacterController {
     public Mono<ResponseEntity<byte[]>> previewVoice(
             @PathVariable String characterId,
             @RequestParam(defaultValue = "Bonjour, je suis ravi de faire votre connaissance!") String text) {
-        
+
         return voiceService.generateVoicePreview(characterId, text)
                 .map(audioData -> ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType("audio/mp3"))
@@ -218,7 +218,7 @@ public class CharacterController {
     public Mono<Void> addToFavorites(
             @PathVariable String characterId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return characterService.addToFavorites(characterId, currentUser.getId());
     }
 
@@ -227,7 +227,7 @@ public class CharacterController {
     public Mono<Void> removeFromFavorites(
             @PathVariable String characterId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return characterService.removeFromFavorites(characterId, currentUser.getId());
     }
 
@@ -237,7 +237,7 @@ public class CharacterController {
             @PathVariable String characterId,
             @RequestBody @Valid RatingDto rating,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return characterService.rateCharacter(characterId, currentUser.getId(), rating);
     }
 
@@ -255,10 +255,10 @@ public class CharacterController {
     public Flux<CharacterImportResultDto> batchImport(
             @RequestParam("file") MultipartFile csvFile,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return characterService.batchImportCharacters(csvFile, currentUser.getId())
-                .onErrorContinue((error, obj) -> 
-                    log.error("Error importing character: {}", obj, error));
+                .onErrorContinue((error, obj) ->
+                        log.error("Error importing character: {}", obj, error));
     }
 
     @GetMapping("/export")
@@ -267,7 +267,7 @@ public class CharacterController {
     public Mono<ResponseEntity<byte[]>> exportCharacters(
             @RequestParam(required = false) List<String> characterIds,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return characterService.exportCharacters(characterIds, currentUser.getId())
                 .map(data -> ResponseEntity.ok()
                         .header("Content-Disposition", "attachment; filename=characters.csv")

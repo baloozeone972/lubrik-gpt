@@ -64,7 +64,7 @@ class CharacterServiceTest {
         // Given
         List<Character> characters = Arrays.asList(testCharacter);
         Page<Character> page = new PageImpl<>(characters);
-        
+
         when(characterRepository.findByIsPublicTrue(any())).thenReturn(page);
 
         // When
@@ -114,9 +114,9 @@ class CharacterServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getContent()).hasSize(1);
         verify(characterRepository).searchCharacters(
-                eq("test"), 
-                eq(Arrays.asList("AI", "friendly")), 
-                eq(4.0), 
+                eq("test"),
+                eq(Arrays.asList("AI", "friendly")),
+                eq(4.0),
                 any()
         );
     }

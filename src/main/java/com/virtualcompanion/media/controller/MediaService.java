@@ -8,8 +8,8 @@ public class MediaService {
     private final MediaMapper mapper;
 
     @Transactional
-    public Mono<MediaResponse> uploadMedia(MultipartFile file, MediaType type, 
-                                          String userId, UUID characterId) {
+    public Mono<MediaResponse> uploadMedia(MultipartFile file, MediaType type,
+                                           String userId, UUID characterId) {
         return validator.validate(file, type)
                 .flatMap(validFile -> storageService.store(validFile, userId))
                 .flatMap(storedFile -> {
@@ -25,7 +25,7 @@ public class MediaService {
                             .thumbnailUrl(storedFile.getThumbnailUrl())
                             .metadata(storedFile.getMetadata())
                             .build();
-                    
+
                     return mediaRepository.save(media);
                 })
                 .map(mapper::toResponse)
@@ -36,8 +36,8 @@ public class MediaService {
     public Flux<MediaResponse> uploadBatch(List<MultipartFile> files, MediaType type, String userId) {
         return Flux.fromIterable(files)
                 .flatMap(file -> uploadMedia(file, type, userId, null))
-                .onErrorContinue((error, file) -> 
-                    log.error("Failed to upload file: {}", ((MultipartFile) file).getOriginalFilename(), error)
+                .onErrorContinue((error, file) ->
+                        log.error("Failed to upload file: {}", ((MultipartFile) file).getOriginalFilename(), error)
                 );
     }
 
@@ -46,7 +46,7 @@ public class MediaService {
                 .map(mapper::toResponse);
     }
 
-    public Mono<Page<MediaResponse>> getUserMedia(String userId, MediaType type, 
+    public Mono<Page<MediaResponse>> getUserMedia(String userId, MediaType type,
                                                   String tag, Pageable pageable) {
         if (type != null && tag != null) {
             return mediaRepository.findByUserIdAndTypeAndTag(UUID.fromString(userId), type, tag, pageable)
@@ -63,9 +63,9 @@ public class MediaService {
     @Transactional
     public Mono<Void> deleteMedia(UUID mediaId, String userId) {
         return mediaRepository.findByIdAndUserId(mediaId, UUID.fromString(userId))
-                .flatMap(media -> 
-                    storageService.delete(media.getUrl())
-                        .then(mediaRepository.delete(media))
+                .flatMap(media ->
+                        storageService.delete(media.getUrl())
+                                .then(mediaRepository.delete(media))
                 )
                 .doOnSuccess(v -> log.info("Media deleted: {}", mediaId));
     }

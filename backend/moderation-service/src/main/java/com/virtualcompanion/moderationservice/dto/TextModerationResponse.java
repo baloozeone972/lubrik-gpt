@@ -1,7 +1,7 @@
 package com.virtualcompanion.moderationservice.dto;
 
 public class TextModerationResponse {
-    
+
     private UUID moderationId;
     private String status; // approved, rejected, flagged, review_required
     private Double confidenceScore;

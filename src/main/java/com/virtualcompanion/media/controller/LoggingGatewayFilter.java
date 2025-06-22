@@ -15,10 +15,10 @@ public class LoggingGatewayFilter extends AbstractGatewayFilterFactory<LoggingGa
 
             String requestId = UUID.randomUUID().toString();
             ServerHttpRequest request = exchange.getRequest();
-            
-            log.info("Request: {} {} from {} with ID: {}", 
-                    request.getMethod(), 
-                    request.getPath(), 
+
+            log.info("Request: {} {} from {} with ID: {}",
+                    request.getMethod(),
+                    request.getPath(),
                     request.getRemoteAddress(),
                     requestId);
 
@@ -28,10 +28,10 @@ public class LoggingGatewayFilter extends AbstractGatewayFilterFactory<LoggingGa
                     .then(Mono.fromRunnable(() -> {
                         ServerHttpResponse response = exchange.getResponse();
                         long duration = System.currentTimeMillis() - startTime;
-                        
-                        log.info("Response: {} for request {} in {}ms", 
-                                response.getStatusCode(), 
-                                requestId, 
+
+                        log.info("Response: {} for request {} in {}ms",
+                                response.getStatusCode(),
+                                requestId,
                                 duration);
                     }));
         };
@@ -39,8 +39,13 @@ public class LoggingGatewayFilter extends AbstractGatewayFilterFactory<LoggingGa
 
     public static class Config {
         private boolean enabled = true;
-        
-        public boolean isEnabled() { return enabled; }
-        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
     }
 }

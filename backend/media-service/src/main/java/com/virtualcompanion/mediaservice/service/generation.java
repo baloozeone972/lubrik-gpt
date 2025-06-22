@@ -1,16 +1,34 @@
 package com.virtualcompanion.mediaservice.service;
 
+setStoragePath(storagePath);.
+
+setFileSize((long) result
+                generation.
+
+getAudioData().
+
+setDuration(result.getDuration().length);
+        generation.
+
+setCost(result.getCost());
+        generation.
+
+setStatus("completed"););
+        generation.
+
+setCompletedAt(LocalDateTime.now()
+                generation.
+
+save(generation););
+
+        voiceGenerationRepository.
+
+// Publish event
+publishVoiceGenerationEvent(generation, "completed");
+
+info("Voice generation completed: {}
+                
+                log.
+
 record
-                generation.setStoragePath(storagePath);
-                generation.setFileSize((long) result.getAudioData().length);
-                generation.setDuration(result.getDuration());
-                generation.setCost(result.getCost());
-                generation.setStatus("completed");
-                generation.setCompletedAt(LocalDateTime.now());
-                
-                voiceGenerationRepository.save(generation);
-                
-                // Publish event
-                publishVoiceGenerationEvent(generation, "completed");
-                
-                log.info("Voice generation completed: {}
+generation

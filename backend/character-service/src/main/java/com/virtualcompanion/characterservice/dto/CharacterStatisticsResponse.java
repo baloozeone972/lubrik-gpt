@@ -1,7 +1,7 @@
 package com.virtualcompanion.characterservice.dto;
 
 public class CharacterStatisticsResponse {
-    
+
     private Long totalConversations;
     private Long uniqueUsers;
     private Double averageRating;

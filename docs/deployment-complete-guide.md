@@ -52,12 +52,14 @@
 ## Prérequis Système {#prerequis}
 
 ### Configuration Minimale (Développement)
+
 - **CPU**: 4 cores
 - **RAM**: 16 GB
 - **Stockage**: 50 GB SSD
 - **OS**: Ubuntu 20.04+ / macOS 12+ / Windows 11 avec WSL2
 
 ### Configuration Recommandée (Production)
+
 - **CPU**: 16 cores
 - **RAM**: 64 GB
 - **Stockage**: 500 GB SSD NVMe
@@ -96,6 +98,7 @@ nano .env
 ```
 
 Variables critiques à modifier :
+
 ```env
 # Bases de données
 DB_PASSWORD=nouveau_mot_de_passe_securise
@@ -153,6 +156,7 @@ EOF
 ### Option 1: Déploiement Manuel (Développement)
 
 #### Compiler tous les services
+
 ```bash
 # Script de compilation global
 #!/bin/bash
@@ -167,6 +171,7 @@ done
 ```
 
 #### Démarrer les services
+
 ```bash
 # Ordre de démarrage important!
 # 1. User Service (authentification)
@@ -202,7 +207,7 @@ version: '3.9'
 
 services:
   # Infrastructure (déjà dans docker-compose.yml)
-  
+
   # Microservices
   user-service:
     build: ./backend/user-service
@@ -247,6 +252,7 @@ services:
 ```
 
 Démarrer avec :
+
 ```bash
 docker-compose -f docker-compose.yml -f docker-compose.full.yml up --build
 ```
@@ -310,6 +316,7 @@ server {
 ### 2. Optimisation des Performances
 
 #### JVM Tuning
+
 ```bash
 # Variables d'environnement pour chaque service
 export JAVA_OPTS="-Xms2g -Xmx4g \
@@ -320,6 +327,7 @@ export JAVA_OPTS="-Xms2g -Xmx4g \
 ```
 
 #### PostgreSQL Tuning
+
 ```sql
 -- postgresql.conf
 shared_buffers = 4GB
@@ -333,6 +341,7 @@ random_page_cost = 1.1
 ```
 
 #### Redis Configuration
+
 ```conf
 # redis.conf
 maxmemory 4gb
@@ -345,6 +354,7 @@ save 60 10000
 ### 3. Sécurité Production
 
 #### Firewall Rules
+
 ```bash
 # UFW Configuration
 ufw default deny incoming
@@ -357,6 +367,7 @@ ufw enable
 ```
 
 #### Secrets Management
+
 ```bash
 # Utiliser HashiCorp Vault ou AWS Secrets Manager
 vault kv put secret/virtual-companion \
@@ -370,6 +381,7 @@ vault kv put secret/virtual-companion \
 ### 1. Dashboards Grafana
 
 Importer les dashboards :
+
 ```bash
 # Copier les dashboards
 cp monitoring/dashboards/*.json /var/lib/grafana/dashboards/
@@ -379,6 +391,7 @@ docker-compose restart grafana
 ```
 
 Dashboards disponibles :
+
 - **System Overview** : Métriques système globales
 - **API Gateway** : Latence, throughput, erreurs
 - **Microservices Health** : État de chaque service
@@ -397,13 +410,13 @@ groups:
         for: 5m
         annotations:
           summary: "Service {{ $labels.job }} is down"
-          
+
       - alert: HighErrorRate
         expr: rate(http_server_requests_total{status=~"5.."}[5m]) > 0.05
         for: 5m
         annotations:
           summary: "High error rate on {{ $labels.service }}"
-          
+
       - alert: DatabaseConnectionPoolExhausted
         expr: hikaricp_connections_active / hikaricp_connections_max > 0.9
         for: 5m
@@ -440,6 +453,7 @@ aws s3 sync $BACKUP_DIR s3://backup-bucket/virtual-companion/$DATE/
 ### 4. Maintenance Planifiée
 
 #### Scripts de Maintenance
+
 ```bash
 # Nettoyage des logs
 find /var/log/virtual-companion -name "*.log" -mtime +30 -delete
@@ -459,6 +473,7 @@ curl -X POST "localhost:9200/_forcemerge?max_num_segments=1"
 ### Problèmes Courants et Solutions
 
 #### 1. Service ne démarre pas
+
 ```bash
 # Vérifier les logs
 docker logs <service-name>
@@ -471,6 +486,7 @@ journalctl -u <service-name> -f
 ```
 
 #### 2. Erreurs de connexion entre services
+
 ```bash
 # Tester la connectivité
 docker exec <service> ping <other-service>
@@ -481,6 +497,7 @@ docker network inspect vc-network
 ```
 
 #### 3. Performance dégradée
+
 ```bash
 # Analyser les métriques
 curl http://localhost:8080/actuator/metrics/jvm.memory.used
@@ -494,6 +511,7 @@ curl http://localhost:8080/actuator/heapdump > heapdump.hprof
 ```
 
 #### 4. Problèmes de base de données
+
 ```sql
 -- Connexions actives
 SELECT pid, usename, application_name, client_addr, state 
@@ -532,6 +550,7 @@ docker-compose up -d
 ## Scripts d'Administration
 
 ### health-check-all.sh
+
 ```bash
 #!/bin/bash
 echo "=== Vérification complète du système ==="
@@ -553,6 +572,7 @@ docker-compose ps
 ```
 
 ### deploy-update.sh
+
 ```bash
 #!/bin/bash
 # Script de déploiement avec rollback automatique
@@ -577,7 +597,8 @@ fi
 
 ## Conclusion
 
-Cette documentation couvre l'ensemble du processus de déploiement de l'application Virtual Companion. Pour des environnements de production à grande échelle, considérez :
+Cette documentation couvre l'ensemble du processus de déploiement de l'application Virtual Companion. Pour des
+environnements de production à grande échelle, considérez :
 
 1. **CDN** : CloudFlare ou AWS CloudFront pour les assets statiques
 2. **Load Balancing** : HAProxy ou AWS ALB pour la répartition de charge
@@ -586,6 +607,7 @@ Cette documentation couvre l'ensemble du processus de déploiement de l'applicat
 5. **CI/CD** : GitLab CI, GitHub Actions ou Jenkins
 
 Pour toute question ou problème, consultez :
+
 - Documentation technique détaillée dans `/docs`
 - Logs des services dans `/logs`
 - Métriques sur http://localhost:3001 (Grafana)

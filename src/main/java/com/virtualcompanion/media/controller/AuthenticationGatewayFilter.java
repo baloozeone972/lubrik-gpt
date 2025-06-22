@@ -12,7 +12,7 @@ public class AuthenticationGatewayFilter extends AbstractGatewayFilterFactory<Au
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
-            
+
             if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
                 return onError(exchange, "No authorization header", HttpStatus.UNAUTHORIZED);
             }
@@ -23,14 +23,14 @@ public class AuthenticationGatewayFilter extends AbstractGatewayFilterFactory<Au
             }
 
             String token = authHeader.substring(7);
-            
+
             return jwtValidator.validateToken(token)
                     .flatMap(claims -> {
                         ServerHttpRequest modifiedRequest = request.mutate()
                                 .header("X-User-Id", claims.getSubject())
                                 .header("X-User-Roles", String.join(",", claims.getRoles()))
                                 .build();
-                        
+
                         return chain.filter(exchange.mutate().request(modifiedRequest).build());
                     })
                     .onErrorResume(error -> {
@@ -44,18 +44,18 @@ public class AuthenticationGatewayFilter extends AbstractGatewayFilterFactory<Au
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(httpStatus);
         response.getHeaders().add("Content-Type", "application/json");
-        
+
         String body = String.format("{\"error\":\"%s\",\"status\":%d}", error, httpStatus.value());
         return response.writeWith(Mono.just(response.bufferFactory().wrap(body.getBytes())));
     }
 
     public static class Config {
         private boolean enabled = true;
-        
+
         public boolean isEnabled() {
             return enabled;
         }
-        
+
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
         }

@@ -1,7 +1,7 @@
 package com.virtualcompanion.billingservice.dto;
 
 public class RefundResponse {
-    
+
     private UUID id;
     private UUID paymentId;
     private BigDecimal amount;

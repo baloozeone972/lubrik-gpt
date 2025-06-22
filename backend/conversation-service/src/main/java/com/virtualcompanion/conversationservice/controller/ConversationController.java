@@ -7,7 +7,7 @@ public class ConversationController {
     private final AIProcessorService aiProcessor;
     private final MemoryService memoryService;
     private final StreamingService streamingService;
-    
+
     // Gestion des flux SSE pour chaque utilisateur
     private final Map<String, Sinks.Many<ServerSentEvent<String>>> userSinks = new ConcurrentHashMap<>();
 
@@ -18,10 +18,10 @@ public class ConversationController {
     public Mono<ConversationDto> createConversation(
             @Valid @RequestBody ConversationCreateDto createDto,
             @CurrentUser UserPrincipal currentUser) {
-        
-        log.info("Creating conversation for user: {} with character: {}", 
+
+        log.info("Creating conversation for user: {} with character: {}",
                 currentUser.getId(), createDto.getCharacterId());
-        
+
         return conversationService.createConversation(
                 currentUser.getId(),
                 createDto.getCharacterId(),
@@ -34,7 +34,7 @@ public class ConversationController {
     public Mono<ConversationDetailDto> getConversation(
             @PathVariable String conversationId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return conversationService.getConversation(conversationId, currentUser.getId())
                 .switchIfEmpty(Mono.error(new ConversationNotFoundException(conversationId)));
     }
@@ -46,11 +46,11 @@ public class ConversationController {
             @RequestParam(required = false) Boolean active,
             Pageable pageable,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return conversationService.getUserConversations(
-                currentUser.getId(), 
-                characterId, 
-                active, 
+                currentUser.getId(),
+                characterId,
+                active,
                 pageable
         );
     }
@@ -61,10 +61,10 @@ public class ConversationController {
             @PathVariable String conversationId,
             @Valid @RequestBody ConversationUpdateDto updateDto,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return conversationService.updateConversation(
-                conversationId, 
-                updateDto, 
+                conversationId,
+                updateDto,
                 currentUser.getId()
         );
     }
@@ -75,7 +75,7 @@ public class ConversationController {
     public Mono<Void> deleteConversation(
             @PathVariable String conversationId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return conversationService.deleteConversation(conversationId, currentUser.getId())
                 .doOnSuccess(v -> log.info("Conversation deleted: {}", conversationId));
     }
@@ -85,7 +85,7 @@ public class ConversationController {
     public Mono<Void> archiveConversation(
             @PathVariable String conversationId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return conversationService.archiveConversation(conversationId, currentUser.getId());
     }
 
@@ -97,7 +97,7 @@ public class ConversationController {
             @PathVariable String conversationId,
             @Valid @RequestBody MessageCreateDto messageDto,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return messageService.sendMessage(conversationId, messageDto, currentUser.getId())
                 .flatMap(message -> {
                     // Déclencher la génération de réponse IA
@@ -113,11 +113,11 @@ public class ConversationController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return messageService.getConversationMessages(
-                conversationId, 
-                currentUser.getId(), 
-                page, 
+                conversationId,
+                currentUser.getId(),
+                page,
                 size
         );
     }
@@ -129,10 +129,10 @@ public class ConversationController {
             @PathVariable String messageId,
             @Valid @RequestBody MessageUpdateDto updateDto,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return messageService.updateMessage(
-                messageId, 
-                updateDto, 
+                messageId,
+                updateDto,
                 currentUser.getId()
         );
     }
@@ -144,7 +144,7 @@ public class ConversationController {
             @PathVariable String conversationId,
             @PathVariable String messageId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return messageService.deleteMessage(messageId, currentUser.getId());
     }
 
@@ -155,22 +155,22 @@ public class ConversationController {
     public Flux<ServerSentEvent<String>> streamConversation(
             @PathVariable String conversationId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         String userId = currentUser.getId();
-        
+
         // Créer ou récupérer le sink pour cet utilisateur
         Sinks.Many<ServerSentEvent<String>> sink = userSinks.computeIfAbsent(
                 userId,
                 k -> Sinks.many().multicast().onBackpressureBuffer()
         );
-        
+
         // Envoyer un heartbeat toutes les 30 secondes
         Flux<ServerSentEvent<String>> heartbeat = Flux.interval(Duration.ofSeconds(30))
                 .map(i -> ServerSentEvent.<String>builder()
                         .event("heartbeat")
                         .data("ping")
                         .build());
-        
+
         // Combiner le flux de messages avec le heartbeat
         return Flux.merge(sink.asFlux(), heartbeat)
                 .doOnCancel(() -> {
@@ -185,7 +185,7 @@ public class ConversationController {
             @PathVariable String conversationId,
             @Valid @RequestBody MessageCreateDto messageDto,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return messageService.sendMessage(conversationId, messageDto, currentUser.getId())
                 .flatMapMany(userMessage -> {
                     // Stream la réponse IA token par token
@@ -210,7 +210,7 @@ public class ConversationController {
     public Mono<ConversationMemoryDto> getConversationMemory(
             @PathVariable String conversationId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return memoryService.getConversationMemory(conversationId, currentUser.getId());
     }
 
@@ -220,10 +220,10 @@ public class ConversationController {
             @PathVariable String conversationId,
             @Valid @RequestBody MemoryEntryDto memoryEntry,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return memoryService.addImportantMemory(
-                conversationId, 
-                memoryEntry, 
+                conversationId,
+                memoryEntry,
                 currentUser.getId()
         );
     }
@@ -233,9 +233,9 @@ public class ConversationController {
     public Mono<ConversationContextDto> getConversationContext(
             @PathVariable String conversationId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return conversationService.getConversationContext(
-                conversationId, 
+                conversationId,
                 currentUser.getId()
         );
     }
@@ -247,7 +247,7 @@ public class ConversationController {
     public Mono<VoiceSessionDto> startVoiceSession(
             @PathVariable String conversationId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return streamingService.createVoiceSession(conversationId, currentUser.getId());
     }
 
@@ -257,10 +257,10 @@ public class ConversationController {
             @PathVariable String conversationId,
             @RequestBody VideoSessionRequestDto request,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return streamingService.createVideoSession(
-                conversationId, 
-                currentUser.getId(), 
+                conversationId,
+                currentUser.getId(),
                 request
         );
     }
@@ -272,9 +272,9 @@ public class ConversationController {
     public Mono<ConversationStatsDto> getConversationStats(
             @PathVariable String conversationId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return conversationService.getConversationStats(
-                conversationId, 
+                conversationId,
                 currentUser.getId()
         );
     }
@@ -285,19 +285,19 @@ public class ConversationController {
             @PathVariable String conversationId,
             @RequestParam(defaultValue = "json") String format,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return conversationService.exportConversation(
-                conversationId, 
-                currentUser.getId(), 
+                conversationId,
+                currentUser.getId(),
                 format
         ).map(data -> {
-            MediaType contentType = format.equals("pdf") 
-                    ? MediaType.APPLICATION_PDF 
+            MediaType contentType = format.equals("pdf")
+                    ? MediaType.APPLICATION_PDF
                     : MediaType.APPLICATION_JSON;
-            
+
             return ResponseEntity.ok()
                     .contentType(contentType)
-                    .header("Content-Disposition", 
+                    .header("Content-Disposition",
                             "attachment; filename=conversation-" + conversationId + "." + format)
                     .body(data);
         });
@@ -310,11 +310,11 @@ public class ConversationController {
     public Flux<ServerSentEvent<StreamingMessageChunk>> regenerateLastResponse(
             @PathVariable String conversationId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return conversationService.regenerateLastAIResponse(
-                conversationId, 
+                conversationId,
                 currentUser.getId()
-        ).flatMapMany(message -> 
+        ).flatMapMany(message ->
                 aiProcessor.streamResponse(conversationId, message)
                         .map(chunk -> ServerSentEvent.<StreamingMessageChunk>builder()
                                 .event("message-chunk")
@@ -328,9 +328,9 @@ public class ConversationController {
     public Mono<Void> clearConversation(
             @PathVariable String conversationId,
             @CurrentUser UserPrincipal currentUser) {
-        
+
         return conversationService.clearConversationHistory(
-                conversationId, 
+                conversationId,
                 currentUser.getId()
         );
     }

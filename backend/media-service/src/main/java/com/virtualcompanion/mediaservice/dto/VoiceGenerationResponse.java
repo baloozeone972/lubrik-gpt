@@ -1,7 +1,7 @@
 package com.virtualcompanion.mediaservice.dto;
 
 public class VoiceGenerationResponse {
-    
+
     private UUID id;
     private String audioUrl;
     private String format;

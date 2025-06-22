@@ -2,16 +2,14 @@ package com.virtualcompanion.user.controller;
 
 class EndToEndTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     private static String authToken;
     private static String userId;
     private static String characterId;
     private static String conversationId;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     @Order(1)
@@ -24,18 +22,18 @@ class EndToEndTest {
         registerRequest.setDisplayName("E2E Test User");
 
         MvcResult result = mockMvc.perform(post("/api/v1/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.token").exists())
                 .andExpect(jsonPath("$.user.email").value("e2e.test@example.com"))
                 .andReturn();
 
         AuthResponse authResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(), 
+                result.getResponse().getContentAsString(),
                 AuthResponse.class
         );
-        
+
         authToken = authResponse.getToken();
         userId = authResponse.getUser().getId().toString();
     }
@@ -50,18 +48,18 @@ class EndToEndTest {
         request.setTraits(Arrays.asList("helpful", "friendly"));
 
         MvcResult result = mockMvc.perform(post("/api/v1/characters")
-                .header("Authorization", "Bearer " + authToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .header("Authorization", "Bearer " + authToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("E2E Test Character"))
                 .andReturn();
 
         CharacterResponse characterResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(), 
+                result.getResponse().getContentAsString(),
                 CharacterResponse.class
         );
-        
+
         characterId = characterResponse.getId().toString();
     }
 
@@ -74,18 +72,18 @@ class EndToEndTest {
         request.setInitialMessage("Hello, let's test the conversation!");
 
         MvcResult result = mockMvc.perform(post("/api/v1/conversations")
-                .header("Authorization", "Bearer " + authToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .header("Authorization", "Bearer " + authToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.characterId").value(characterId))
                 .andReturn();
 
         ConversationResponse conversationResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(), 
+                result.getResponse().getContentAsString(),
                 ConversationResponse.class
         );
-        
+
         conversationId = conversationResponse.getId().toString();
     }
 
@@ -99,9 +97,9 @@ class EndToEndTest {
             request.setContent("Test message " + i);
 
             mockMvc.perform(post("/api/v1/conversations/{id}/messages", conversationId)
-                    .header("Authorization", "Bearer " + authToken)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+                            .header("Authorization", "Bearer " + authToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").exists());
 
@@ -110,7 +108,7 @@ class EndToEndTest {
 
         // Verify conversation history
         mockMvc.perform(get("/api/v1/conversations/{id}/messages", conversationId)
-                .header("Authorization", "Bearer " + authToken))
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content.length()").value(7)); // Initial + 3 user + 3 AI
@@ -121,7 +119,7 @@ class EndToEndTest {
     @DisplayName("Complete user journey - Check Usage")
     void userJourney_CheckUsage() throws Exception {
         mockMvc.perform(get("/api/v1/billing/usage")
-                .header("Authorization", "Bearer " + authToken))
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.messageCount").value(4))
                 .andExpect(jsonPath("$.characterCount").value(1));

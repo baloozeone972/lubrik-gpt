@@ -1,7 +1,7 @@
 package com.virtualcompanion.mediaservice.dto;
 
 public class TranscodeResponse {
-    
+
     private UUID jobId;
     private String status; // queued, processing, completed, failed
     private Integer progress;

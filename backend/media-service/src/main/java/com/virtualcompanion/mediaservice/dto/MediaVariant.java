@@ -1,7 +1,7 @@
 package com.virtualcompanion.mediaservice.dto;
 
 public class MediaVariant {
-    
+
     private String variantType;
     private String quality;
     private String format;

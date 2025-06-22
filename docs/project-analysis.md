@@ -5,34 +5,35 @@
 ### ✅ Ce qui est VRAIMENT fait (prêt à utiliser)
 
 1. **Architecture & Documentation** (90% complet)
-   - Architecture microservices bien définie
-   - Documentation API complète
-   - Diagrammes et schémas techniques
-   - Guide de déploiement
+    - Architecture microservices bien définie
+    - Documentation API complète
+    - Diagrammes et schémas techniques
+    - Guide de déploiement
 
 2. **Base de Données** (85% complet)
-   - 35+ entités JPA définies
-   - 6 migrations Flyway complètes
-   - Index et optimisations SQL
-   - Schéma de données complet
+    - 35+ entités JPA définies
+    - 6 migrations Flyway complètes
+    - Index et optimisations SQL
+    - Schéma de données complet
 
 3. **Configuration** (80% complet)
-   - Docker Compose fonctionnel
-   - Fichiers application.yml pour tous les services
-   - Configuration Kubernetes
-   - Scripts d'infrastructure
+    - Docker Compose fonctionnel
+    - Fichiers application.yml pour tous les services
+    - Configuration Kubernetes
+    - Scripts d'infrastructure
 
 4. **Structure du Projet** (75% complet)
-   - Organisation des packages Java
-   - Structure des modules
-   - DTOs et entités définis
-   - Configuration Maven/pom.xml
+    - Organisation des packages Java
+    - Structure des modules
+    - DTOs et entités définis
+    - Configuration Maven/pom.xml
 
 ### ❌ Ce qui MANQUE (à développer)
 
 ## 🚨 PRIORITÉ 1 : Backend Core (2-3 semaines)
 
 ### 1. Controllers REST Manquants
+
 ```java
 // À implémenter pour CHAQUE service :
 - CharacterController (15+ endpoints)
@@ -43,6 +44,7 @@
 ```
 
 **Exemple de ce qui manque :**
+
 ```java
 @RestController
 @RequestMapping("/api/v1/characters")
@@ -63,6 +65,7 @@ public class CharacterController {
 ```
 
 ### 2. Services Métier (Business Logic)
+
 ```java
 // Services à créer :
 - CharacterService (génération IA, personnalités)
@@ -73,6 +76,7 @@ public class CharacterController {
 ```
 
 ### 3. Repositories JPA
+
 ```java
 // Interfaces à créer :
 - CharacterRepository
@@ -84,6 +88,7 @@ public class CharacterController {
 ```
 
 ### 4. Intégrations Externes
+
 - **Ollama** : Connexion non implémentée
 - **Stripe** : API non intégrée
 - **AWS S3** : Upload non configuré
@@ -97,6 +102,7 @@ public class CharacterController {
 **Ce qui manque complètement :**
 
 ### 1. Application React/Next.js
+
 ```typescript
 // Pages à créer :
 - pages/dashboard.tsx (tableau de bord utilisateur)
@@ -108,6 +114,7 @@ public class CharacterController {
 ```
 
 ### 2. Composants UI
+
 ```typescript
 // Composants manquants :
 - ChatWindow (interface de chat complète)
@@ -120,6 +127,7 @@ public class CharacterController {
 ```
 
 ### 3. State Management
+
 ```typescript
 // Stores Zustand à implémenter :
 - useConversationStore (gestion conversations)
@@ -129,6 +137,7 @@ public class CharacterController {
 ```
 
 ### 4. Intégration API
+
 ```typescript
 // Services API à créer :
 - api/authService.ts
@@ -141,6 +150,7 @@ public class CharacterController {
 ## 🚨 PRIORITÉ 3 : Tests (2 semaines)
 
 ### Tests Backend (40% fait)
+
 ```java
 // Tests à écrire :
 - UserServiceTest (partiel)
@@ -151,6 +161,7 @@ public class CharacterController {
 ```
 
 ### Tests Frontend (0% fait)
+
 ```typescript
 // Tests à créer :
 - Composants React (Jest + Testing Library)
@@ -161,6 +172,7 @@ public class CharacterController {
 ## 📱 Mobile App (0% - Non commencé)
 
 ### React Native - Tout à faire
+
 ```typescript
 // Application complète à développer :
 - Navigation
@@ -174,6 +186,7 @@ public class CharacterController {
 ## 🔧 Intégrations IA Manquantes
 
 ### 1. Ollama (LLM)
+
 ```python
 # Service Python à créer pour Ollama
 - Endpoint de génération

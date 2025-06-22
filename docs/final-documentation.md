@@ -13,7 +13,8 @@
 
 ## Vue d'ensemble
 
-Virtual Companion est une plateforme SaaS de compagnons virtuels basée sur l'IA, construite avec une architecture microservices scalable.
+Virtual Companion est une plateforme SaaS de compagnons virtuels basée sur l'IA, construite avec une architecture
+microservices scalable.
 
 ### Stack Technique
 
@@ -74,9 +75,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 #### User Service
 
 ##### POST /auth/register
+
 Créer un nouveau compte utilisateur.
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -86,6 +89,7 @@ Créer un nouveau compte utilisateur.
 ```
 
 **Response:**
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIs...",
@@ -99,9 +103,11 @@ Créer un nouveau compte utilisateur.
 ```
 
 ##### POST /auth/login
+
 Authentification utilisateur.
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -110,6 +116,7 @@ Authentification utilisateur.
 ```
 
 **Response:**
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIs...",
@@ -122,9 +129,11 @@ Authentification utilisateur.
 ```
 
 ##### GET /users/profile
+
 Récupérer le profil de l'utilisateur connecté.
 
 **Response:**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -144,15 +153,18 @@ Récupérer le profil de l'utilisateur connecté.
 #### Character Service
 
 ##### GET /characters
+
 Liste des personnages disponibles.
 
 **Query Parameters:**
+
 - `page` (int): Numéro de page (défaut: 0)
 - `size` (int): Taille de page (défaut: 20)
 - `category` (string): Filtrer par catégorie
 - `search` (string): Recherche textuelle
 
 **Response:**
+
 ```json
 {
   "content": [
@@ -162,7 +174,11 @@ Liste des personnages disponibles.
       "description": "A wise and mystical guide",
       "avatarUrl": "https://cdn.virtualcompanion.ai/characters/luna.jpg",
       "category": "fantasy",
-      "traits": ["wise", "mystical", "helpful"],
+      "traits": [
+        "wise",
+        "mystical",
+        "helpful"
+      ],
       "rating": 4.8,
       "conversationCount": 15420,
       "isPublic": true
@@ -175,19 +191,28 @@ Liste des personnages disponibles.
 ```
 
 ##### POST /characters
+
 Créer un personnage personnalisé (Premium uniquement).
 
 **Request:**
+
 ```json
 {
   "name": "Custom Assistant",
   "description": "My personal AI assistant",
-  "traits": ["professional", "efficient", "friendly"],
+  "traits": [
+    "professional",
+    "efficient",
+    "friendly"
+  ],
   "category": "assistant",
   "personality": {
     "greeting": "Hello! How can I assist you today?",
     "tone": "professional",
-    "interests": ["productivity", "technology"]
+    "interests": [
+      "productivity",
+      "technology"
+    ]
   }
 }
 ```
@@ -195,9 +220,11 @@ Créer un personnage personnalisé (Premium uniquement).
 #### Conversation Service
 
 ##### POST /conversations
+
 Démarrer une nouvelle conversation.
 
 **Request:**
+
 ```json
 {
   "characterId": "char-001",
@@ -206,6 +233,7 @@ Démarrer une nouvelle conversation.
 ```
 
 **Response:**
+
 ```json
 {
   "id": "conv-12345",
@@ -231,9 +259,11 @@ Démarrer une nouvelle conversation.
 ```
 
 ##### POST /conversations/{id}/messages
+
 Envoyer un message dans une conversation.
 
 **Request:**
+
 ```json
 {
   "content": "Tell me about the stars",
@@ -242,6 +272,7 @@ Envoyer un message dans une conversation.
 ```
 
 **WebSocket Alternative:**
+
 ```javascript
 ws.send(JSON.stringify({
   type: 'message',
@@ -253,17 +284,20 @@ ws.send(JSON.stringify({
 #### Media Service
 
 ##### POST /media/upload
+
 Upload de fichiers média.
 
 **Request:**
+
 - Method: POST
 - Content-Type: multipart/form-data
 - Fields:
-  - `file`: Le fichier à uploader
-  - `type`: Type de média (image, audio, video)
-  - `characterId` (optionnel): ID du personnage associé
+    - `file`: Le fichier à uploader
+    - `type`: Type de média (image, audio, video)
+    - `characterId` (optionnel): ID du personnage associé
 
 **Response:**
+
 ```json
 {
   "id": "media-789",
@@ -282,6 +316,7 @@ Upload de fichiers média.
 - Enterprise: Illimité
 
 Headers de réponse:
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
@@ -290,14 +325,14 @@ X-RateLimit-Reset: 1705318800
 
 ### Codes d'Erreur
 
-| Code | Description |
-|------|-------------|
-| 400 | Bad Request - Paramètres invalides |
-| 401 | Unauthorized - Token manquant ou invalide |
-| 403 | Forbidden - Accès refusé |
-| 404 | Not Found - Ressource introuvable |
-| 429 | Too Many Requests - Rate limit dépassé |
-| 500 | Internal Server Error |
+| Code | Description                               |
+|------|-------------------------------------------|
+| 400  | Bad Request - Paramètres invalides        |
+| 401  | Unauthorized - Token manquant ou invalide |
+| 403  | Forbidden - Accès refusé                  |
+| 404  | Not Found - Ressource introuvable         |
+| 429  | Too Many Requests - Rate limit dépassé    |
+| 500  | Internal Server Error                     |
 
 ## Guide de Déploiement Production
 
@@ -429,11 +464,13 @@ kubectl apply -f monitoring/grafana-dashboards.yaml
 ### 1. Chiffrement
 
 #### Au repos
+
 - Base de données: AES-256 encryption
 - S3: SSE-S3 encryption
 - Redis: Encryption at rest activé
 
 #### En transit
+
 - TLS 1.3 pour toutes les communications
 - mTLS entre services internes
 - VPN pour accès administratif
@@ -445,29 +482,29 @@ kubectl apply -f monitoring/grafana-dashboards.yaml
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-            .cors().and()
-            .csrf().disable()
-            .sessionManagement()
+                .cors().and()
+                .csrf().disable()
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .authorizeHttpRequests()
+                .and()
+                .authorizeHttpRequests()
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/public/**").permitAll()
                 .requestMatchers("/actuator/health/**").permitAll()
                 .anyRequest().authenticated()
-            .and()
-            .oauth2ResourceServer()
+                .and()
+                .oauth2ResourceServer()
                 .jwt()
                 .jwtAuthenticationConverter(jwtAuthenticationConverter())
-            .and()
-            .exceptionHandling()
+                .and()
+                .exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint())
-            .and()
-            .build();
+                .and()
+                .build();
     }
 }
 ```
@@ -475,12 +512,14 @@ public class SecurityConfig {
 ### 3. GDPR Compliance
 
 #### Droits des utilisateurs
+
 - **Accès**: GET /api/v1/users/data-export
 - **Rectification**: PUT /api/v1/users/profile
 - **Effacement**: DELETE /api/v1/users/account
 - **Portabilité**: GET /api/v1/users/data-export?format=json
 
 #### Data Retention Policy
+
 ```sql
 -- Suppression automatique des données anciennes
 CREATE OR REPLACE FUNCTION cleanup_old_data()
@@ -527,28 +566,29 @@ add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
 ### 5. Audit Logging
 
 ```java
+
 @Component
 @Aspect
 public class AuditAspect {
-    
+
     @Autowired
     private AuditService auditService;
-    
+
     @Around("@annotation(Auditable)")
     public Object audit(ProceedingJoinPoint joinPoint) throws Throwable {
         String user = SecurityContextHolder.getContext()
-            .getAuthentication().getName();
+                .getAuthentication().getName();
         String action = joinPoint.getSignature().getName();
         Object[] args = joinPoint.getArgs();
-        
+
         AuditLog log = AuditLog.builder()
-            .userId(user)
-            .action(action)
-            .resource(joinPoint.getTarget().getClass().getSimpleName())
-            .timestamp(Instant.now())
-            .ipAddress(getClientIP())
-            .build();
-        
+                .userId(user)
+                .action(action)
+                .resource(joinPoint.getTarget().getClass().getSimpleName())
+                .timestamp(Instant.now())
+                .ipAddress(getClientIP())
+                .build();
+
         try {
             Object result = joinPoint.proceed();
             log.setStatus("SUCCESS");
@@ -573,45 +613,45 @@ public class AuditAspect {
 - name: virtual_companion_active_users
   help: Number of active users in the last 24 hours
   type: gauge
-  
+
 - name: virtual_companion_messages_sent_total
   help: Total number of messages sent
   type: counter
-  labels: [character_id, user_tier]
-  
+  labels: [ character_id, user_tier ]
+
 - name: virtual_companion_ai_generation_duration_seconds
   help: Time taken for AI response generation
   type: histogram
-  buckets: [0.1, 0.5, 1, 2, 5, 10]
+  buckets: [ 0.1, 0.5, 1, 2, 5, 10 ]
 ```
 
 ### 2. Alertes Critiques
 
 ```yaml
 groups:
-- name: critical-alerts
-  rules:
-  - alert: HighErrorRate
-    expr: |
-      sum(rate(http_requests_total{status=~"5.."}[5m])) 
-      / sum(rate(http_requests_total[5m])) > 0.05
-    for: 5m
-    labels:
-      severity: page
-    annotations:
-      summary: "High error rate detected"
-      
-  - alert: DatabaseConnectionPoolExhausted
-    expr: hikaricp_connections_active / hikaricp_connections_max > 0.9
-    for: 5m
-    labels:
-      severity: critical
-      
-  - alert: AIServiceDown
-    expr: up{job="ai-service"} == 0
-    for: 1m
-    labels:
-      severity: critical
+  - name: critical-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) 
+          / sum(rate(http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: "High error rate detected"
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: hikaricp_connections_active / hikaricp_connections_max > 0.9
+        for: 5m
+        labels:
+          severity: critical
+
+      - alert: AIServiceDown
+        expr: up{job="ai-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
 ```
 
 ### 3. Dashboards Grafana
@@ -624,36 +664,37 @@ groups:
 ### 4. Distributed Tracing
 
 ```java
+
 @RestController
 @Slf4j
 public class ConversationController {
-    
+
     @Autowired
     private Tracer tracer;
-    
+
     @PostMapping("/conversations/{id}/messages")
     public Mono<MessageResponse> sendMessage(
             @PathVariable String id,
             @RequestBody SendMessageRequest request) {
-        
+
         Span span = tracer.nextSpan()
-            .name("send-message")
-            .tag("conversation.id", id)
-            .start();
-        
+                .name("send-message")
+                .tag("conversation.id", id)
+                .start();
+
         return Mono.defer(() -> {
             try (Tracer.SpanInScope ws = tracer.withSpanInScope(span)) {
                 span.tag("message.length", String.valueOf(request.getContent().length()));
-                
+
                 return conversationService.sendMessage(id, request)
-                    .doOnSuccess(response -> {
-                        span.tag("response.generated", "true");
-                        span.end();
-                    })
-                    .doOnError(error -> {
-                        span.error(error);
-                        span.end();
-                    });
+                        .doOnSuccess(response -> {
+                            span.tag("response.generated", "true");
+                            span.end();
+                        })
+                        .doOnError(error -> {
+                            span.error(error);
+                            span.end();
+                        });
             }
         });
     }
@@ -665,6 +706,7 @@ public class ConversationController {
 ### 1. Scaling Horizontal
 
 #### Auto-scaling Configuration
+
 ```yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -678,22 +720,23 @@ spec:
   minReplicas: 3
   maxReplicas: 50
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Pods
-    pods:
-      metric:
-        name: websocket_connections
-      target:
-        type: AverageValue
-        averageValue: "100"
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Pods
+      pods:
+        metric:
+          name: websocket_connections
+        target:
+          type: AverageValue
+          averageValue: "100"
 ```
 
 #### Database Scaling
+
 ```sql
 -- Partitioning pour les tables volumineuses
 CREATE TABLE messages (
@@ -725,43 +768,46 @@ $$ LANGUAGE plpgsql;
 ### 2. Optimisations Performance
 
 #### Query Optimization
+
 ```java
 // Utilisation de projections pour réduire la charge
 @Query("""
-    SELECT new com.vc.dto.ConversationSummary(
-        c.id, c.title, c.lastMessageAt, 
-        ch.name, ch.avatarUrl,
-        COUNT(m.id)
-    )
-    FROM Conversation c
-    JOIN c.character ch
-    LEFT JOIN c.messages m
-    WHERE c.userId = :userId
-    GROUP BY c.id, c.title, c.lastMessageAt, ch.name, ch.avatarUrl
-    ORDER BY c.lastMessageAt DESC
-    """)
+        SELECT new com.vc.dto.ConversationSummary(
+            c.id, c.title, c.lastMessageAt, 
+            ch.name, ch.avatarUrl,
+            COUNT(m.id)
+        )
+        FROM Conversation c
+        JOIN c.character ch
+        LEFT JOIN c.messages m
+        WHERE c.userId = :userId
+        GROUP BY c.id, c.title, c.lastMessageAt, ch.name, ch.avatarUrl
+        ORDER BY c.lastMessageAt DESC
+        """)
 Page<ConversationSummary> findUserConversationSummaries(
-    @Param("userId") UUID userId, 
-    Pageable pageable
+        @Param("userId") UUID userId,
+        Pageable pageable
 );
 ```
 
 #### Caching Strategy
+
 ```java
+
 @Service
 public class CharacterService {
-    
+
     @Cacheable(
-        value = "characters", 
-        key = "#id",
-        condition = "#result != null",
-        unless = "#result.isPrivate()"
+            value = "characters",
+            key = "#id",
+            condition = "#result != null",
+            unless = "#result.isPrivate()"
     )
     public Character findById(UUID id) {
         return characterRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException("Character not found"));
+                .orElseThrow(() -> new NotFoundException("Character not found"));
     }
-    
+
     @CacheEvict(value = "characters", key = "#character.id")
     public Character update(Character character) {
         return characterRepository.save(character);
@@ -772,17 +818,19 @@ public class CharacterService {
 ### 3. Cost Optimization
 
 #### Spot Instances pour Workloads Non-Critiques
+
 ```yaml
 nodeSelector:
   node.kubernetes.io/lifecycle: spot
 tolerations:
-- key: "spot"
-  operator: "Equal"
-  value: "true"
-  effect: "NoSchedule"
+  - key: "spot"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
 ```
 
 #### Reserved Capacity Planning
+
 ```python
 # Script d'analyse des coûts
 import boto3
@@ -817,6 +865,7 @@ def analyze_usage_for_reservations():
 ### 1. Problèmes Courants
 
 #### High Memory Usage
+
 ```bash
 # Identifier les pods consommateurs
 kubectl top pods -n virtual-companion --sort-by=memory
@@ -829,6 +878,7 @@ kubectl cp virtual-companion/<pod-name>:/tmp/heap.bin ./heap.bin
 ```
 
 #### Slow Queries
+
 ```sql
 -- Identifier les requêtes lentes
 SELECT 
@@ -850,6 +900,7 @@ LIMIT 20;
 ```
 
 #### WebSocket Connection Issues
+
 ```javascript
 // Client-side debugging
 const ws = new WebSocket('wss://api.virtualcompanion.ai/ws');
@@ -1096,7 +1147,8 @@ Cette documentation couvre tous les aspects essentiels du projet Virtual Compani
 - ✅ Plan de scaling et optimisation
 - ✅ Scripts de maintenance et troubleshooting
 
-Le projet est maintenant **prêt pour la production** avec tous les composants nécessaires pour une plateforme SaaS robuste et scalable.
+Le projet est maintenant **prêt pour la production** avec tous les composants nécessaires pour une plateforme SaaS
+robuste et scalable.
 
 ### Prochaines Étapes Recommandées
 

@@ -71,8 +71,8 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/v1/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.token").value("jwt-token"))
                 .andExpect(jsonPath("$.user.email").value(mockUser.getEmail()));
@@ -90,8 +90,8 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/v1/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
 
         verify(userService, never()).register(any());
@@ -114,8 +114,8 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/v1/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").exists())
                 .andExpect(jsonPath("$.user.id").value(userId.toString()));
@@ -130,7 +130,7 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/v1/users/profile")
-                .with(jwt().jwt(jwt -> jwt.claim("sub", "test-user-id"))))
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", "test-user-id"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId.toString()))
                 .andExpect(jsonPath("$.email").value("test@example.com"));
@@ -146,7 +146,7 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/v1/users/profile")
-                .with(jwt().jwt(jwt -> jwt.claim("sub", "unknown-user"))))
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", "unknown-user"))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("User not found"));
     }
@@ -165,9 +165,9 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(put("/api/v1/users/profile")
-                .with(jwt().jwt(jwt -> jwt.claim("sub", "test-user-id")))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", "test-user-id")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId.toString()));
     }
@@ -181,7 +181,7 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(delete("/api/v1/users/profile")
-                .with(jwt().jwt(jwt -> jwt.claim("sub", "test-user-id"))))
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", "test-user-id"))))
                 .andExpect(status().isNoContent());
 
         verify(userService, times(1)).deleteUser(anyString());
@@ -191,11 +191,11 @@ class UserControllerTest {
 // UserService/src/test/java/com/virtualcompanion/user/service/UserServiceTest.java
 package com.virtualcompanion.user.service;
 
-import com.virtualcompanion.user.dto.*;
-import com.virtualcompanion.user.entity.User;
+import com.virtualcompanion.user.dto .*;
+        import com.virtualcompanion.user.entity.User;
 import com.virtualcompanion.user.entity.UserProfile;
-import com.virtualcompanion.user.exception.*;
-import com.virtualcompanion.user.repository.UserRepository;
+import com.virtualcompanion.user.exception .*;
+        import com.virtualcompanion.user.repository.UserRepository;
 import com.virtualcompanion.user.repository.UserProfileRepository;
 import com.virtualcompanion.user.security.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -210,9 +210,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions .*;
+        import static org.mockito.ArgumentMatchers .*;
+        import static org.mockito.Mockito .*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -241,7 +241,7 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         UUID userId = UUID.randomUUID();
-        
+
         testUser = User.builder()
                 .id(userId)
                 .email("test@example.com")
@@ -359,9 +359,9 @@ class UserServiceTest {
 
         // Then
         assertThat(response).isNotNull();
-        verify(profileRepository).save(argThat(profile -> 
-            profile.getDisplayName().equals("Updated Name") &&
-            profile.getBio().equals("Updated bio")
+        verify(profileRepository).save(argThat(profile ->
+                profile.getDisplayName().equals("Updated Name") &&
+                        profile.getBio().equals("Updated bio")
         ));
     }
 
@@ -372,7 +372,7 @@ class UserServiceTest {
         String userId = testUser.getId().toString();
         UpdateProfileRequest request1 = new UpdateProfileRequest();
         request1.setDisplayName("Name 1");
-        
+
         UpdateProfileRequest request2 = new UpdateProfileRequest();
         request2.setDisplayName("Name 2");
 
@@ -401,8 +401,8 @@ class UserServiceTest {
 // CharacterService/src/test/java/com/virtualcompanion/character/service/CharacterServiceTest.java
 package com.virtualcompanion.character.service;
 
-import com.virtualcompanion.character.dto.*;
-import com.virtualcompanion.character.entity.Character;
+import com.virtualcompanion.character.dto .*;
+        import com.virtualcompanion.character.entity.Character;
 import com.virtualcompanion.character.entity.CharacterPersonality;
 import com.virtualcompanion.character.repository.CharacterRepository;
 import com.virtualcompanion.character.ai.PersonalityGenerator;
@@ -418,11 +418,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util .*;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+        import static org.assertj.core.api.Assertions .*;
+        import static org.mockito.ArgumentMatchers .*;
+        import static org.mockito.Mockito .*;
 
 @ExtendWith(MockitoExtension.class)
 class CharacterServiceTest {
@@ -489,7 +489,7 @@ class CharacterServiceTest {
         // Given
         List<Character> characters = Arrays.asList(testCharacter);
         Page<Character> page = new PageImpl<>(characters);
-        
+
         when(characterRepository.findByIsPublicTrue(any())).thenReturn(page);
 
         // When
@@ -539,9 +539,9 @@ class CharacterServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getContent()).hasSize(1);
         verify(characterRepository).searchCharacters(
-                eq("test"), 
-                eq(Arrays.asList("AI", "friendly")), 
-                eq(4.0), 
+                eq("test"),
+                eq(Arrays.asList("AI", "friendly")),
+                eq(4.0),
                 any()
         );
     }
@@ -552,8 +552,8 @@ class CharacterServiceTest {
 // ConversationService/src/test/java/com/virtualcompanion/conversation/service/ConversationServiceTest.java
 package com.virtualcompanion.conversation.service;
 
-import com.virtualcompanion.conversation.dto.*;
-import com.virtualcompanion.conversation.entity.Conversation;
+import com.virtualcompanion.conversation.dto .*;
+        import com.virtualcompanion.conversation.entity.Conversation;
 import com.virtualcompanion.conversation.entity.Message;
 import com.virtualcompanion.conversation.repository.ConversationRepository;
 import com.virtualcompanion.conversation.repository.MessageRepository;
@@ -569,12 +569,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util .*;
+        import java.util.concurrent.CompletableFuture;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions .*;
+        import static org.mockito.ArgumentMatchers .*;
+        import static org.mockito.Mockito .*;
 
 @ExtendWith(MockitoExtension.class)
 class ConversationServiceTest {
@@ -600,7 +600,7 @@ class ConversationServiceTest {
     @BeforeEach
     void setUp() {
         UUID conversationId = UUID.randomUUID();
-        
+
         testConversation = Conversation.builder()
                 .id(conversationId)
                 .userId(UUID.randomUUID())
@@ -731,8 +731,8 @@ class ConversationServiceTest {
 // BillingService/src/test/java/com/virtualcompanion/billing/service/SubscriptionServiceTest.java
 package com.virtualcompanion.billing.service;
 
-import com.virtualcompanion.billing.dto.*;
-import com.virtualcompanion.billing.entity.Subscription;
+import com.virtualcompanion.billing.dto .*;
+        import com.virtualcompanion.billing.entity.Subscription;
 import com.virtualcompanion.billing.entity.SubscriptionTier;
 import com.virtualcompanion.billing.repository.SubscriptionRepository;
 import com.virtualcompanion.billing.stripe.StripeService;
@@ -748,11 +748,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util .*;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+        import static org.assertj.core.api.Assertions .*;
+        import static org.mockito.ArgumentMatchers .*;
+        import static org.mockito.Mockito .*;
 
 @ExtendWith(MockitoExtension.class)
 class SubscriptionServiceTest {
@@ -775,7 +775,7 @@ class SubscriptionServiceTest {
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
-        
+
         testSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
@@ -797,7 +797,7 @@ class SubscriptionServiceTest {
 
         Customer mockCustomer = mock(Customer.class);
         when(mockCustomer.getId()).thenReturn("cus_123");
-        
+
         com.stripe.model.Subscription mockStripeSubscription = mock(com.stripe.model.Subscription.class);
         when(mockStripeSubscription.getId()).thenReturn("sub_123");
 
@@ -812,7 +812,7 @@ class SubscriptionServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getTier()).isEqualTo(SubscriptionTier.PREMIUM);
         assertThat(response.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
-        
+
         verify(stripeService).createCustomer(any());
         verify(stripeService).createSubscription(any());
         verify(subscriptionRepository).save(any());
@@ -824,7 +824,7 @@ class SubscriptionServiceTest {
         // Given
         when(subscriptionRepository.findByUserIdAndStatus(any(), any()))
                 .thenReturn(Optional.of(testSubscription));
-        
+
         com.stripe.model.Subscription cancelledSub = mock(com.stripe.model.Subscription.class);
         when(stripeService.cancelSubscription(anyString())).thenReturn(cancelledSub);
 
@@ -833,8 +833,8 @@ class SubscriptionServiceTest {
 
         // Then
         verify(stripeService).cancelSubscription("sub_123");
-        verify(subscriptionRepository).save(argThat(sub -> 
-            sub.getStatus() == SubscriptionStatus.CANCELLED
+        verify(subscriptionRepository).save(argThat(sub ->
+                sub.getStatus() == SubscriptionStatus.CANCELLED
         ));
     }
 
@@ -869,8 +869,8 @@ class SubscriptionServiceTest {
         subscriptionService.handlePaymentFailure("sub_123");
 
         // Then
-        verify(subscriptionRepository).save(argThat(sub -> 
-            sub.getStatus() == SubscriptionStatus.PAST_DUE
+        verify(subscriptionRepository).save(argThat(sub ->
+                sub.getStatus() == SubscriptionStatus.PAST_DUE
         ));
     }
 
@@ -879,18 +879,18 @@ class SubscriptionServiceTest {
     void enforceUsageLimits() {
         // Given
         testSubscription.setTier(SubscriptionTier.FREE);
-        
+
         when(subscriptionRepository.findByUserIdAndStatus(any(), any()))
                 .thenReturn(Optional.of(testSubscription));
         when(usageService.getCurrentUsage(any(), any()))
                 .thenReturn(100L); // At limit
 
         // When & Then
-        assertThatThrownBy(() -> 
-            subscriptionService.checkUsageLimit(userId.toString(), UsageType.MESSAGE)
+        assertThatThrownBy(() ->
+                subscriptionService.checkUsageLimit(userId.toString(), UsageType.MESSAGE)
         )
-        .isInstanceOf(UsageLimitExceededException.class)
-        .hasMessage("Usage limit exceeded for MESSAGE");
+                .isInstanceOf(UsageLimitExceededException.class)
+                .hasMessage("Usage limit exceeded for MESSAGE");
     }
 }
 
@@ -900,12 +900,12 @@ class SubscriptionServiceTest {
 package com.virtualcompanion.integration;
 
 import com.virtualcompanion.VirtualCompanionApplication;
-import com.virtualcompanion.user.dto.*;
-import com.virtualcompanion.character.dto.*;
-import com.virtualcompanion.conversation.dto.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.virtualcompanion.user.dto .*;
+        import com.virtualcompanion.character.dto .*;
+        import com.virtualcompanion.conversation.dto .*;
+        import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api .*;
+        import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -914,8 +914,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders .*;
+        import static org.springframework.test.web.servlet.result.MockMvcResultMatchers .*;
 
 @SpringBootTest(classes = VirtualCompanionApplication.class)
 @AutoConfigureMockMvc
@@ -924,16 +924,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class EndToEndTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     private static String authToken;
     private static String userId;
     private static String characterId;
     private static String conversationId;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     @Order(1)
@@ -946,18 +944,18 @@ class EndToEndTest {
         registerRequest.setDisplayName("E2E Test User");
 
         MvcResult result = mockMvc.perform(post("/api/v1/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.token").exists())
                 .andExpect(jsonPath("$.user.email").value("e2e.test@example.com"))
                 .andReturn();
 
         AuthResponse authResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(), 
+                result.getResponse().getContentAsString(),
                 AuthResponse.class
         );
-        
+
         authToken = authResponse.getToken();
         userId = authResponse.getUser().getId().toString();
     }
@@ -972,18 +970,18 @@ class EndToEndTest {
         request.setTraits(Arrays.asList("helpful", "friendly"));
 
         MvcResult result = mockMvc.perform(post("/api/v1/characters")
-                .header("Authorization", "Bearer " + authToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .header("Authorization", "Bearer " + authToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("E2E Test Character"))
                 .andReturn();
 
         CharacterResponse characterResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(), 
+                result.getResponse().getContentAsString(),
                 CharacterResponse.class
         );
-        
+
         characterId = characterResponse.getId().toString();
     }
 
@@ -996,18 +994,18 @@ class EndToEndTest {
         request.setInitialMessage("Hello, let's test the conversation!");
 
         MvcResult result = mockMvc.perform(post("/api/v1/conversations")
-                .header("Authorization", "Bearer " + authToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .header("Authorization", "Bearer " + authToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.characterId").value(characterId))
                 .andReturn();
 
         ConversationResponse conversationResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(), 
+                result.getResponse().getContentAsString(),
                 ConversationResponse.class
         );
-        
+
         conversationId = conversationResponse.getId().toString();
     }
 
@@ -1021,9 +1019,9 @@ class EndToEndTest {
             request.setContent("Test message " + i);
 
             mockMvc.perform(post("/api/v1/conversations/{id}/messages", conversationId)
-                    .header("Authorization", "Bearer " + authToken)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+                            .header("Authorization", "Bearer " + authToken)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").exists());
 
@@ -1032,7 +1030,7 @@ class EndToEndTest {
 
         // Verify conversation history
         mockMvc.perform(get("/api/v1/conversations/{id}/messages", conversationId)
-                .header("Authorization", "Bearer " + authToken))
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content.length()").value(7)); // Initial + 3 user + 3 AI
@@ -1043,7 +1041,7 @@ class EndToEndTest {
     @DisplayName("Complete user journey - Check Usage")
     void userJourney_CheckUsage() throws Exception {
         mockMvc.perform(get("/api/v1/billing/usage")
-                .header("Authorization", "Bearer " + authToken))
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.messageCount").value(4))
                 .andExpect(jsonPath("$.characterCount").value(1));
@@ -1056,17 +1054,17 @@ class EndToEndTest {
 package com.virtualcompanion.performance;
 
 import com.virtualcompanion.conversation.service.ConversationService;
-import com.virtualcompanion.conversation.dto.*;
-import org.junit.jupiter.api.Test;
+import com.virtualcompanion.conversation.dto .*;
+        import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.concurrent.*;
-import java.util.stream.IntStream;
+import java.util.concurrent .*;
+        import java.util.stream.IntStream;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions .*;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -1117,17 +1115,17 @@ class LoadTest {
         // Given
         int requests = 1000;
         long maxResponseTime = 200; // milliseconds
-        
+
         // When
         List<Long> responseTimes = new ArrayList<>();
-        
+
         for (int i = 0; i < requests; i++) {
             long start = System.currentTimeMillis();
-            
+
             SendMessageRequest request = new SendMessageRequest();
             request.setContent("Performance test message");
             conversationService.processMessage(request);
-            
+
             long responseTime = System.currentTimeMillis() - start;
             responseTimes.add(responseTime);
         }
@@ -1137,7 +1135,7 @@ class LoadTest {
                 .mapToLong(Long::longValue)
                 .average()
                 .orElse(0);
-                
+
         long p95ResponseTime = responseTimes.stream()
                 .sorted()
                 .skip((long) (requests * 0.95))

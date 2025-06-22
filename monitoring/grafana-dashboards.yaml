@@ -1,0 +1,51 @@
+# monitoring/grafana-dashboards.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+data:
+  service-overview.json: |
+    {
+      "dashboard": {
+        "title": "Virtual Companion - Service Overview",
+        "panels": [
+          {
+            "title": "Request Rate",
+            "targets": [
+              {
+                "expr": "sum(rate(http_server_requests_seconds_count[5m])) by (service)"
+              }
+            ],
+            "type": "graph"
+          },
+          {
+            "title": "Error Rate",
+            "targets": [
+              {
+                "expr": "sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[5m])) by (service)"
+              }
+            ],
+            "type": "graph"
+          },
+          {
+            "title": "Response Time (p95)",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket[5m])) by (service, le))"
+              }
+            ],
+            "type": "graph"
+          },
+          {
+            "title": "Active Connections",
+            "targets": [
+              {
+                "expr": "sum(websocket_active_connections) by (service)"
+              }
+            ],
+            "type": "stat"
+          }
+        ]
+      }
+    }

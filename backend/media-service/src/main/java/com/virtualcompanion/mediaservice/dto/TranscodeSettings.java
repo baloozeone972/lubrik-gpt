@@ -1,7 +1,7 @@
 package com.virtualcompanion.mediaservice.dto;
 
 public class TranscodeSettings {
-    
+
     private String videoCodec;
     private String audioCodec;
     private String bitrate;

@@ -1,7 +1,7 @@
 package com.virtualcompanion.characterservice.dto;
 
 public class CharacterSearchRequest {
-    
+
     private String query;
     private List<String> categories;
     private List<String> tags;

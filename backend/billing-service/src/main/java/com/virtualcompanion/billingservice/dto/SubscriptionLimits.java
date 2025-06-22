@@ -1,7 +1,7 @@
 package com.virtualcompanion.billingservice.dto;
 
 public class SubscriptionLimits {
-    
+
     private Integer maxCharacters;
     private Integer maxConversationsPerDay;
     private Boolean voiceGeneration;

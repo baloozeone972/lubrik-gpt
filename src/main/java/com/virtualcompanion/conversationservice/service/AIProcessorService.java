@@ -18,7 +18,7 @@ public class AIProcessorService {
                 .flatMap(context -> {
                     // Vérifier le cache
                     String cacheKey = generateCacheKey(context, userMessage.getContent());
-                    
+
                     return checkCache(cacheKey)
                             .switchIfEmpty(
                                     generateAIResponse(context, userMessage)
@@ -54,7 +54,7 @@ public class AIProcessorService {
 
     private Mono<String> generateAIResponse(ConversationContext context, MessageDto userMessage) {
         OllamaRequest request = buildOllamaRequest(context, userMessage.getContent());
-        
+
         return ollamaClient.post()
                 .uri("/api/generate")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -70,10 +70,10 @@ public class AIProcessorService {
     private Flux<String> streamFromOllama(ConversationContext context, String userMessage) {
         OllamaRequest request = buildOllamaRequest(context, userMessage);
         request.setStream(true);
-        
+
         AtomicInteger tokenCount = new AtomicInteger(0);
         StringBuilder fullResponse = new StringBuilder();
-        
+
         return ollamaClient.post()
                 .uri("/api/generate")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -106,20 +106,20 @@ public class AIProcessorService {
 
     private OllamaRequest buildOllamaRequest(ConversationContext context, String userMessage) {
         CharacterDto character = context.getCharacter();
-        
+
         // Construire le prompt système basé sur la personnalité
         String systemPrompt = buildSystemPrompt(character, context);
-        
+
         // Construire l'historique de conversation
         String conversationHistory = buildConversationHistory(context);
-        
+
         // Ajouter les souvenirs pertinents
-        String relevantMemories = context.getRelevantMemories().isEmpty() ? "" 
+        String relevantMemories = context.getRelevantMemories().isEmpty() ? ""
                 : "\n\nSouvenirs importants:\n" + formatMemories(context.getRelevantMemories());
-        
-        String fullPrompt = conversationHistory + relevantMemories + 
+
+        String fullPrompt = conversationHistory + relevantMemories +
                 "\nUtilisateur: " + userMessage + "\nAssistant:";
-        
+
         return OllamaRequest.builder()
                 .model(aiConfig.getModel())
                 .prompt(fullPrompt)
@@ -136,10 +136,10 @@ public class AIProcessorService {
 
     private String buildSystemPrompt(CharacterDto character, ConversationContext context) {
         StringBuilder prompt = new StringBuilder();
-        
+
         prompt.append("Tu es ").append(character.getName()).append(". ");
         prompt.append(character.getDescription()).append("\n\n");
-        
+
         // Personnalité
         if (character.getPersonality() != null) {
             prompt.append("Personnalité:\n");
@@ -149,45 +149,45 @@ public class AIProcessorService {
             prompt.append("- Stabilité émotionnelle: ").append(character.getPersonality().getEmotionalStability()).append("/100\n");
             prompt.append("- Ouverture: ").append(character.getPersonality().getOpenness()).append("/100\n\n");
         }
-        
+
         // Instructions comportementales
         prompt.append("Instructions:\n");
         prompt.append("- Reste toujours dans le personnage\n");
         prompt.append("- Utilise le style de communication approprié\n");
         prompt.append("- Tiens compte de l'historique de conversation\n");
         prompt.append("- Sois cohérent avec les interactions précédentes\n");
-        
+
         // Contexte spécifique
         if (context.getCurrentMood() != null) {
             prompt.append("\nHumeur actuelle: ").append(context.getCurrentMood()).append("\n");
         }
-        
+
         if (context.getRelationshipLevel() > 0) {
             prompt.append("Niveau de relation: ").append(context.getRelationshipLevel()).append("/100\n");
         }
-        
+
         return prompt.toString();
     }
 
     private String buildConversationHistory(ConversationContext context) {
         StringBuilder history = new StringBuilder();
-        
+
         // Limiter l'historique aux N derniers messages
         int maxMessages = aiConfig.getContextWindowMessages();
         List<MessageDto> recentMessages = context.getRecentMessages();
-        
+
         if (recentMessages.size() > maxMessages) {
             recentMessages = recentMessages.subList(
-                    recentMessages.size() - maxMessages, 
+                    recentMessages.size() - maxMessages,
                     recentMessages.size()
             );
         }
-        
+
         for (MessageDto msg : recentMessages) {
             String role = msg.getRole() == MessageRole.USER ? "Utilisateur" : context.getCharacter().getName();
             history.append(role).append(": ").append(msg.getContent()).append("\n");
         }
-        
+
         return history.toString();
     }
 
@@ -195,39 +195,39 @@ public class AIProcessorService {
 
     private Mono<String> postProcessResponse(String response, ConversationContext context) {
         return Mono.fromCallable(() -> {
-            // Nettoyer la réponse
-            String cleaned = cleanResponse(response);
-            
-            // Vérifier la cohérence avec le personnage
-            if (!isResponseCoherent(cleaned, context)) {
-                log.warn("Response not coherent with character, regenerating...");
-                return regenerateWithConstraints(context, cleaned);
-            }
-            
-            // Appliquer des filtres de sécurité
-            cleaned = applySecurityFilters(cleaned, context);
-            
-            // Ajouter des éléments de personnalité
-            cleaned = enhanceWithPersonality(cleaned, context.getCharacter());
-            
-            return cleaned;
-        })
-        .flatMap(result -> result instanceof Mono ? (Mono<String>) result : Mono.just((String) result))
-        .subscribeOn(Schedulers.boundedElastic());
+                    // Nettoyer la réponse
+                    String cleaned = cleanResponse(response);
+
+                    // Vérifier la cohérence avec le personnage
+                    if (!isResponseCoherent(cleaned, context)) {
+                        log.warn("Response not coherent with character, regenerating...");
+                        return regenerateWithConstraints(context, cleaned);
+                    }
+
+                    // Appliquer des filtres de sécurité
+                    cleaned = applySecurityFilters(cleaned, context);
+
+                    // Ajouter des éléments de personnalité
+                    cleaned = enhanceWithPersonality(cleaned, context.getCharacter());
+
+                    return cleaned;
+                })
+                .flatMap(result -> result instanceof Mono ? (Mono<String>) result : Mono.just((String) result))
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
     private String cleanResponse(String response) {
         // Supprimer les répétitions
         response = removeRepetitions(response);
-        
+
         // Corriger la ponctuation
         response = fixPunctuation(response);
-        
+
         // Limiter la longueur si nécessaire
         if (response.length() > aiConfig.getMaxResponseLength()) {
             response = truncateNaturally(response, aiConfig.getMaxResponseLength());
         }
-        
+
         return response.trim();
     }
 
@@ -237,7 +237,7 @@ public class AIProcessorService {
         String characterId = context.getCharacter().getId();
         String messageHash = Integer.toHexString(message.hashCode());
         String contextHash = Integer.toHexString(context.getRecentMessages().hashCode());
-        
+
         return String.format("ai:response:%s:%s:%s", characterId, messageHash, contextHash);
     }
 
@@ -266,7 +266,7 @@ public class AIProcessorService {
                         .generationTime(System.currentTimeMillis())
                         .build())
                 .build();
-        
+
         return messageRepository.save(message)
                 .map(this::toDto)
                 .doOnSuccess(msg -> updateConversationActivity(conversationId));
@@ -276,7 +276,7 @@ public class AIProcessorService {
 
     private Mono<MessageDto> generateFallbackResponse(String conversationId, MessageDto userMessage) {
         String fallbackContent = selectFallbackResponse(userMessage.getContent());
-        
+
         return saveAIMessage(conversationId, fallbackContent, userMessage.getId())
                 .doOnSuccess(msg -> log.info("Used fallback response for conversation: {}", conversationId));
     }
@@ -289,7 +289,7 @@ public class AIProcessorService {
                 "Je suis là pour vous écouter. Continuez, je vous prie.",
                 "Voilà une question fascinante. Explorons cela ensemble."
         );
-        
+
         // Sélectionner une réponse basée sur le hash du message
         int index = Math.abs(userMessage.hashCode()) % fallbacks.size();
         return fallbacks.get(index);
@@ -301,12 +301,12 @@ public class AIProcessorService {
         if (character.getPersonality() == null) {
             return aiConfig.getDefaultTemperature();
         }
-        
+
         // Ajuster la température selon la personnalité
         double baseTemp = aiConfig.getDefaultTemperature();
         double creativity = character.getPersonality().getOpenness() / 100.0;
         double stability = character.getPersonality().getEmotionalStability() / 100.0;
-        
+
         // Plus créatif = température plus élevée
         // Plus stable = température plus basse
         return baseTemp + (creativity * 0.3) - (stability * 0.2);
@@ -314,12 +314,12 @@ public class AIProcessorService {
 
     private Map<String, Object> buildModelOptions(CharacterDto character) {
         Map<String, Object> options = new HashMap<>();
-        
+
         // Options spécifiques au modèle
         options.put("mirostat", 2);
         options.put("mirostat_eta", 0.1);
         options.put("mirostat_tau", 5.0);
-        
+
         // Ajuster selon le type de personnage
         if (character.getCategory() == CharacterCategory.ROMANTIC) {
             options.put("temperature", 0.8);
@@ -328,7 +328,7 @@ public class AIProcessorService {
             options.put("temperature", 0.3);
             options.put("top_p", 0.9);
         }
-        
+
         return options;
     }
 

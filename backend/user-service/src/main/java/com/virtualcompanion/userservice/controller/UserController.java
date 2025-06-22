@@ -3,155 +3,174 @@ package com.virtualcompanion.userservice.controller;
 public class UserController {
     
     private final UserService userService;
+    private final SessionService sessionService;
+    private final TwoFactorService twoFactorService;
     
-    @GetMapping("/me")
+    @GetMapping("/profile")
     @Operation(summary = "Get current user profile")
-    public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
-        UserResponse user = userService.getUserByEmail(userDetails.getUsername());
-        return ResponseEntity.ok(user);
-    }
-    
-    @GetMapping("/{userId}")
-    @Operation(summary = "Get user by ID")
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable UUID userId) {
-        UserResponse user = userService.getUserById(userId);
-        return ResponseEntity.ok(user);
-    }
-    
-    @GetMapping
-    @Operation(summary = "Get all users (Admin only)")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<UserResponse>> getAllUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "DESC") Sort.Direction direction) {
+    public ResponseEntity<ApiResponse<UserResponse>> getProfile(
+            @AuthenticationPrincipal User currentUser) {
         
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        Page<UserResponse> users = userService.getAllUsers(pageRequest);
-        return ResponseEntity.ok(users);
+        UserResponse response = userService.getUserProfile(currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
     
-    @PutMapping("/{userId}")
+    @PutMapping("/profile")
     @Operation(summary = "Update user profile")
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
-    public ResponseEntity<UserResponse> updateUser(
-            @PathVariable UUID userId,
-            @Valid @RequestBody UpdateUserRequest request) {
-        UserResponse updatedUser = userService.updateUser(userId, request);
-        return ResponseEntity.ok(updatedUser);
-    }
-    
-    @DeleteMapping("/{userId}")
-    @Operation(summary = "Delete user account")
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable UUID userId) {
-        userService.deleteUser(userId);
-    }
-    
-    @PostMapping("/{userId}/password")
-    @Operation(summary = "Update user password")
-    @PreAuthorize("#userId == authentication.principal.id")
-    public ResponseEntity<UserResponse> updatePassword(
-            @PathVariable UUID userId,
-            @Valid @RequestBody UpdatePasswordRequest request) {
-        UserResponse user = userService.updatePassword(userId, request);
-        return ResponseEntity.ok(user);
-    }
-    
-    @GetMapping("/{userId}/preferences")
-    @Operation(summary = "Get user preferences")
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
-    public ResponseEntity<UserPreferenceResponse> getUserPreferences(@PathVariable UUID userId) {
-        UserPreferenceResponse preferences = userService.getUserPreferences(userId);
-        return ResponseEntity.ok(preferences);
-    }
-    
-    @PutMapping("/{userId}/preferences")
-    @Operation(summary = "Update user preferences")
-    @PreAuthorize("#userId == authentication.principal.id")
-    public ResponseEntity<UserPreferenceResponse> updateUserPreferences(
-            @PathVariable UUID userId,
-            @Valid @RequestBody UpdatePreferenceRequest request) {
-        UserPreferenceResponse preferences = userService.updateUserPreferences(userId, request);
-        return ResponseEntity.ok(preferences);
-    }
-    
-    @GetMapping("/{userId}/compliance")
-    @Operation(summary = "Get user compliance status")
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
-    public ResponseEntity<ComplianceStatusResponse> getComplianceStatus(@PathVariable UUID userId) {
-        ComplianceStatusResponse compliance = userService.getComplianceStatus(userId);
-        return ResponseEntity.ok(compliance);
-    }
-    
-    @PutMapping("/{userId}/compliance")
-    @Operation(summary = "Update user compliance consents")
-    @PreAuthorize("#userId == authentication.principal.id")
-    public ResponseEntity<Void> updateComplianceStatus(
-            @PathVariable UUID userId,
-            @Valid @RequestBody UpdateComplianceRequest request) {
-        userService.updateComplianceStatus(userId, request);
-        return ResponseEntity.noContent().build();
-    }
-    
-    @GetMapping("/{userId}/subscription")
-    @Operation(summary = "Get user subscription details")
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
-    public ResponseEntity<SubscriptionResponse> getUserSubscription(@PathVariable UUID userId) {
-        SubscriptionResponse subscription = userService.getUserSubscription(userId);
-        return ResponseEntity.ok(subscription);
-    }
-    
-    @GetMapping("/{userId}/statistics")
-    @Operation(summary = "Get user statistics")
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
-    public ResponseEntity<UserStatisticsResponse> getUserStatistics(@PathVariable UUID userId) {
-        UserStatisticsResponse statistics = userService.getUserStatistics(userId);
-        return ResponseEntity.ok(statistics);
-    }
-    
-    @PostMapping("/{userId}/2fa/enable")
-    @Operation(summary = "Enable two-factor authentication")
-    @PreAuthorize("#userId == authentication.principal.id")
-    public ResponseEntity<TwoFactorSetupResponse> enableTwoFactor(@PathVariable UUID userId) {
-        userService.enableTwoFactorAuth(userId);
-        String qrCode = userService.generateTwoFactorQrCode(userId);
-        return ResponseEntity.ok(new TwoFactorSetupResponse(qrCode));
-    }
-    
-    @PostMapping("/{userId}/2fa/disable")
-    @Operation(summary = "Disable two-factor authentication")
-    @PreAuthorize("#userId == authentication.principal.id")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void disableTwoFactor(
-            @PathVariable UUID userId,
-            @Valid @RequestBody DisableTwoFactorRequest request) {
-        userService.disableTwoFactorAuth(userId, request.getVerificationCode());
-    }
-    
-    @PostMapping("/{userId}/2fa/verify")
-    @Operation(summary = "Verify two-factor authentication code")
-    @PreAuthorize("#userId == authentication.principal.id")
-    public ResponseEntity<VerifyTwoFactorResponse> verifyTwoFactor(
-            @PathVariable UUID userId,
-            @Valid @RequestBody VerifyTwoFactorRequest request) {
-        boolean valid = userService.verifyTwoFactorCode(userId, request.getCode());
-        return ResponseEntity.ok(new VerifyTwoFactorResponse(valid));
-    }
-    
-    @GetMapping("/search")
-    @Operation(summary = "Search users (Admin only)")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<UserResponse>> searchUsers(
-            @RequestParam String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+    public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody UpdateProfileRequest request) {
         
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<UserResponse> users = userService.searchUsers(query, pageRequest);
-        return ResponseEntity.ok(users);
+        UserResponse response = userService.updateProfile(currentUser.getId(), request);
+        return ResponseEntity.ok(ApiResponse.success("Profile updated", response));
+    }
+    
+    @PostMapping("/avatar")
+    @Operation(summary = "Upload avatar image")
+    public ResponseEntity<ApiResponse<String>> uploadAvatar(
+            @AuthenticationPrincipal User currentUser,
+            @RequestParam("file") MultipartFile file) {
+        
+        String avatarUrl = userService.uploadAvatar(currentUser.getId(), file);
+        return ResponseEntity.ok(ApiResponse.success("Avatar uploaded", avatarUrl));
+    }
+    
+    @DeleteMapping("/avatar")
+    @Operation(summary = "Delete avatar image")
+    public ResponseEntity<ApiResponse<Void>> deleteAvatar(
+            @AuthenticationPrincipal User currentUser) {
+        
+        userService.deleteAvatar(currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success("Avatar deleted", null));
+    }
+    
+    @PostMapping("/change-password")
+    @Operation(summary = "Change password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        
+        userService.changePassword(currentUser.getId(), request);
+        return ResponseEntity.ok(ApiResponse.success("Password changed successfully", null));
+    }
+    
+    @PostMapping("/verify-age")
+    @Operation(summary = "Verify user age")
+    public ResponseEntity<ApiResponse<Void>> verifyAge(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @ModelAttribute AgeVerificationRequest request) {
+        
+        userService.verifyAge(currentUser.getId(), request);
+        return ResponseEntity.ok(ApiResponse.success("Age verification submitted", null));
+    }
+    
+    // Sessions
+    @GetMapping("/sessions")
+    @Operation(summary = "Get user sessions")
+    public ResponseEntity<ApiResponse<List<SessionResponse>>> getSessions(
+            @AuthenticationPrincipal User currentUser,
+            @RequestHeader("Authorization") String currentToken) {
+        
+        List<SessionResponse> sessions = sessionService.getUserSessions(currentUser.getId());
+        
+        // Mark current session
+        String token = currentToken.replace("Bearer ", "");
+        sessions.forEach(session -> {
+            // In real implementation, would match by session token
+            session.setCurrent(false);
+        });
+        
+        return ResponseEntity.ok(ApiResponse.success(sessions));
+    }
+    
+    @DeleteMapping("/sessions/{sessionId}")
+    @Operation(summary = "Revoke a session")
+    public ResponseEntity<ApiResponse<Void>> revokeSession(
+            @AuthenticationPrincipal User currentUser,
+            @PathVariable UUID sessionId) {
+        
+        sessionService.revokeSession(currentUser.getId(), sessionId);
+        return ResponseEntity.ok(ApiResponse.success("Session revoked", null));
+    }
+    
+    @PostMapping("/sessions/revoke-all")
+    @Operation(summary = "Revoke all sessions except current")
+    public ResponseEntity<ApiResponse<Void>> revokeAllSessions(
+            @AuthenticationPrincipal User currentUser,
+            @RequestHeader("Authorization") String token) {
+        
+        sessionService.revokeAllSessions(currentUser.getId(), token.replace("Bearer ", ""));
+        return ResponseEntity.ok(ApiResponse.success("All sessions revoked", null));
+    }
+    
+    // Two-Factor Authentication
+    @PostMapping("/2fa/enable")
+    @Operation(summary = "Enable 2FA")
+    public ResponseEntity<ApiResponse<TwoFactorSetupResponse>> enable2FA(
+            @AuthenticationPrincipal User currentUser) {
+        
+        TwoFactorSetupResponse response = twoFactorService.setupTwoFactor(currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+    
+    @PostMapping("/2fa/confirm")
+    @Operation(summary = "Confirm 2FA setup")
+    public ResponseEntity<ApiResponse<Void>> confirm2FA(
+            @AuthenticationPrincipal User currentUser,
+            @RequestParam String code) {
+        
+        twoFactorService.confirmTwoFactor(currentUser.getId(), code);
+        return ResponseEntity.ok(ApiResponse.success("2FA enabled successfully", null));
+    }
+    
+    @PostMapping("/2fa/disable")
+    @Operation(summary = "Disable 2FA")
+    public ResponseEntity<ApiResponse<Void>> disable2FA(
+            @AuthenticationPrincipal User currentUser,
+            @RequestParam String password) {
+        
+        twoFactorService.disableTwoFactor(currentUser.getId(), password);
+        return ResponseEntity.ok(ApiResponse.success("2FA disabled", null));
+    }
+    
+    // Preferences
+    @GetMapping("/preferences")
+    @Operation(summary = "Get user preferences")
+    public ResponseEntity<ApiResponse<List<UserPreferenceRequest>>> getPreferences(
+            @AuthenticationPrincipal User currentUser) {
+        
+        List<UserPreferenceRequest> preferences = userService.getUserPreferences(currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success(preferences));
+    }
+    
+    @PutMapping("/preferences")
+    @Operation(summary = "Update user preferences")
+    public ResponseEntity<ApiResponse<Void>> updatePreferences(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody List<UserPreferenceRequest> preferences) {
+        
+        userService.updatePreferences(currentUser.getId(), preferences);
+        return ResponseEntity.ok(ApiResponse.success("Preferences updated", null));
+    }
+    
+    // GDPR
+    @PostMapping("/gdpr/export")
+    @Operation(summary = "Export user data (GDPR)")
+    public ResponseEntity<ApiResponse<String>> exportData(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody GdprExportRequest request) {
+        
+        String exportUrl = userService.exportUserData(currentUser.getId(), request);
+        return ResponseEntity.ok(ApiResponse.success("Data export initiated", exportUrl));
+    }
+    
+    @DeleteMapping("/gdpr/delete")
+    @Operation(summary = "Delete account (GDPR)")
+    public ResponseEntity<ApiResponse<Void>> deleteAccount(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody AccountDeletionRequest request) {
+        
+        userService.deleteAccount(currentUser.getId(), request);
+        return ResponseEntity.ok(ApiResponse.success("Account deletion initiated", null));
     }
 }

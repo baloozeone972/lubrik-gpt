@@ -13,7 +13,7 @@ public class MediaController {
             @RequestParam("type") MediaType type,
             @RequestParam(value = "characterId", required = false) UUID characterId,
             @AuthenticationPrincipal String userId) {
-        
+
         return mediaService.uploadMedia(file, type, userId, characterId)
                 .map(media -> ResponseEntity.status(HttpStatus.CREATED).body(media));
     }
@@ -24,7 +24,7 @@ public class MediaController {
             @RequestParam("files") List<MultipartFile> files,
             @RequestParam("type") MediaType type,
             @AuthenticationPrincipal String userId) {
-        
+
         return mediaService.uploadBatch(files, type, userId)
                 .collectList()
                 .map(media -> ResponseEntity.status(HttpStatus.CREATED).body(media));
@@ -35,7 +35,7 @@ public class MediaController {
     public Mono<ResponseEntity<MediaResponse>> getMedia(
             @PathVariable UUID mediaId,
             @AuthenticationPrincipal String userId) {
-        
+
         return mediaService.getMedia(mediaId, userId)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());
@@ -48,7 +48,7 @@ public class MediaController {
             @RequestParam(required = false) String tag,
             Pageable pageable,
             @AuthenticationPrincipal String userId) {
-        
+
         return mediaService.getUserMedia(userId, type, tag, pageable)
                 .map(ResponseEntity::ok);
     }
@@ -59,7 +59,7 @@ public class MediaController {
             @PathVariable UUID mediaId,
             @RequestBody @Valid MediaProcessingRequest request,
             @AuthenticationPrincipal String userId) {
-        
+
         return processingService.processMedia(mediaId, request, userId)
                 .map(ResponseEntity::ok);
     }
@@ -69,7 +69,7 @@ public class MediaController {
     public Mono<ResponseEntity<Void>> deleteMedia(
             @PathVariable UUID mediaId,
             @AuthenticationPrincipal String userId) {
-        
+
         return mediaService.deleteMedia(mediaId, userId)
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
@@ -79,7 +79,7 @@ public class MediaController {
     public Mono<ResponseEntity<Void>> purgeCDN(
             @PathVariable UUID mediaId,
             @AuthenticationPrincipal String userId) {
-        
+
         return cdnService.purgeMedia(mediaId, userId)
                 .then(Mono.just(ResponseEntity.ok().build()));
     }
@@ -90,7 +90,7 @@ public class MediaController {
             @RequestParam(required = false) UUID mediaId,
             @RequestParam(required = false) String period,
             @AuthenticationPrincipal String userId) {
-        
+
         return mediaService.getAnalytics(mediaId, userId, period)
                 .map(ResponseEntity::ok);
     }

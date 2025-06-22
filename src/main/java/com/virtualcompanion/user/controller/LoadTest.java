@@ -47,17 +47,17 @@ class LoadTest {
         // Given
         int requests = 1000;
         long maxResponseTime = 200; // milliseconds
-        
+
         // When
         List<Long> responseTimes = new ArrayList<>();
-        
+
         for (int i = 0; i < requests; i++) {
             long start = System.currentTimeMillis();
-            
+
             SendMessageRequest request = new SendMessageRequest();
             request.setContent("Performance test message");
             conversationService.processMessage(request);
-            
+
             long responseTime = System.currentTimeMillis() - start;
             responseTimes.add(responseTime);
         }
@@ -67,7 +67,7 @@ class LoadTest {
                 .mapToLong(Long::longValue)
                 .average()
                 .orElse(0);
-                
+
         long p95ResponseTime = responseTimes.stream()
                 .sorted()
                 .skip((long) (requests * 0.95))

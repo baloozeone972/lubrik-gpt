@@ -1,7 +1,7 @@
 package com.virtualcompanion.conversationservice.dto;
 
 public class ConversationExportResponse {
-    
+
     private String exportId;
     private String downloadUrl;
     private Long fileSize;

@@ -20,7 +20,7 @@ class SubscriptionServiceTest {
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
-        
+
         testSubscription = Subscription.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
@@ -42,7 +42,7 @@ class SubscriptionServiceTest {
 
         Customer mockCustomer = mock(Customer.class);
         when(mockCustomer.getId()).thenReturn("cus_123");
-        
+
         com.stripe.model.Subscription mockStripeSubscription = mock(com.stripe.model.Subscription.class);
         when(mockStripeSubscription.getId()).thenReturn("sub_123");
 
@@ -57,7 +57,7 @@ class SubscriptionServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getTier()).isEqualTo(SubscriptionTier.PREMIUM);
         assertThat(response.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
-        
+
         verify(stripeService).createCustomer(any());
         verify(stripeService).createSubscription(any());
         verify(subscriptionRepository).save(any());
@@ -69,7 +69,7 @@ class SubscriptionServiceTest {
         // Given
         when(subscriptionRepository.findByUserIdAndStatus(any(), any()))
                 .thenReturn(Optional.of(testSubscription));
-        
+
         com.stripe.model.Subscription cancelledSub = mock(com.stripe.model.Subscription.class);
         when(stripeService.cancelSubscription(anyString())).thenReturn(cancelledSub);
 
@@ -78,8 +78,8 @@ class SubscriptionServiceTest {
 
         // Then
         verify(stripeService).cancelSubscription("sub_123");
-        verify(subscriptionRepository).save(argThat(sub -> 
-            sub.getStatus() == SubscriptionStatus.CANCELLED
+        verify(subscriptionRepository).save(argThat(sub ->
+                sub.getStatus() == SubscriptionStatus.CANCELLED
         ));
     }
 
@@ -114,8 +114,8 @@ class SubscriptionServiceTest {
         subscriptionService.handlePaymentFailure("sub_123");
 
         // Then
-        verify(subscriptionRepository).save(argThat(sub -> 
-            sub.getStatus() == SubscriptionStatus.PAST_DUE
+        verify(subscriptionRepository).save(argThat(sub ->
+                sub.getStatus() == SubscriptionStatus.PAST_DUE
         ));
     }
 
@@ -124,17 +124,17 @@ class SubscriptionServiceTest {
     void enforceUsageLimits() {
         // Given
         testSubscription.setTier(SubscriptionTier.FREE);
-        
+
         when(subscriptionRepository.findByUserIdAndStatus(any(), any()))
                 .thenReturn(Optional.of(testSubscription));
         when(usageService.getCurrentUsage(any(), any()))
                 .thenReturn(100L); // At limit
 
         // When & Then
-        assertThatThrownBy(() -> 
-            subscriptionService.checkUsageLimit(userId.toString(), UsageType.MESSAGE)
+        assertThatThrownBy(() ->
+                subscriptionService.checkUsageLimit(userId.toString(), UsageType.MESSAGE)
         )
-        .isInstanceOf(UsageLimitExceededException.class)
-        .hasMessage("Usage limit exceeded for MESSAGE");
+                .isInstanceOf(UsageLimitExceededException.class)
+                .hasMessage("Usage limit exceeded for MESSAGE");
     }
 }

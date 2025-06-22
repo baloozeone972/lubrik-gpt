@@ -23,7 +23,7 @@ class ConversationServiceTest {
     @BeforeEach
     void setUp() {
         UUID conversationId = UUID.randomUUID();
-        
+
         testConversation = Conversation.builder()
                 .id(conversationId)
                 .userId(UUID.randomUUID())

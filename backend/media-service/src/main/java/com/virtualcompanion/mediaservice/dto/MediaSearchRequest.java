@@ -1,7 +1,7 @@
 package com.virtualcompanion.mediaservice.dto;
 
 public class MediaSearchRequest {
-    
+
     private UUID userId;
     private UUID characterId;
     private UUID conversationId;

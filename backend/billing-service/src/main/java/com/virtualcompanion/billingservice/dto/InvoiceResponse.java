@@ -1,7 +1,7 @@
 package com.virtualcompanion.billingservice.dto;
 
 public class InvoiceResponse {
-    
+
     private UUID id;
     private String invoiceNumber;
     private UUID userId;

@@ -9,19 +9,19 @@ public class ContentModerationService {
 
     public Mono<ModerationResult> checkContent(ContentCheckRequest request) {
         return Mono.defer(() -> {
-            switch (request.getType()) {
-                case TEXT:
-                    return checkText(request.getContent());
-                case IMAGE:
-                    return checkImage(request.getContent());
-                case MIXED:
-                    return checkMixed(request);
-                default:
-                    return Mono.just(ModerationResult.safe());
-            }
-        })
-        .flatMap(result -> logResult(request, result))
-        .doOnSuccess(result -> log.debug("Content moderation result: {}", result));
+                    switch (request.getType()) {
+                        case TEXT:
+                            return checkText(request.getContent());
+                        case IMAGE:
+                            return checkImage(request.getContent());
+                        case MIXED:
+                            return checkMixed(request);
+                        default:
+                            return Mono.just(ModerationResult.safe());
+                    }
+                })
+                .flatMap(result -> logResult(request, result))
+                .doOnSuccess(result -> log.debug("Content moderation result: {}", result));
     }
 
     private Mono<ModerationResult> checkText(String text) {
@@ -43,10 +43,10 @@ public class ContentModerationService {
 
     private Mono<ModerationResult> checkMixed(ContentCheckRequest request) {
         return Mono.zip(
-                checkText(request.getContent()),
-                checkImage(request.getImageUrl())
-        )
-        .map(tuple -> ModerationResult.combine(tuple.getT1(), tuple.getT2()));
+                        checkText(request.getContent()),
+                        checkImage(request.getImageUrl())
+                )
+                .map(tuple -> ModerationResult.combine(tuple.getT1(), tuple.getT2()));
     }
 
     private Mono<ModerationResult> logResult(ContentCheckRequest request, ModerationResult result) {
@@ -58,7 +58,7 @@ public class ContentModerationService {
                     .result(result)
                     .timestamp(new Date())
                     .build();
-            
+
             return logRepository.save(log)
                     .thenReturn(result);
         }

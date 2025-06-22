@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 
 import jakarta.validation.Valid;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -41,7 +42,7 @@ public class MediaController {
             @RequestParam("type") MediaType type,
             @RequestParam(value = "characterId", required = false) UUID characterId,
             @AuthenticationPrincipal String userId) {
-        
+
         return mediaService.uploadMedia(file, type, userId, characterId)
                 .map(media -> ResponseEntity.status(HttpStatus.CREATED).body(media));
     }
@@ -52,7 +53,7 @@ public class MediaController {
             @RequestParam("files") List<MultipartFile> files,
             @RequestParam("type") MediaType type,
             @AuthenticationPrincipal String userId) {
-        
+
         return mediaService.uploadBatch(files, type, userId)
                 .collectList()
                 .map(media -> ResponseEntity.status(HttpStatus.CREATED).body(media));
@@ -63,7 +64,7 @@ public class MediaController {
     public Mono<ResponseEntity<MediaResponse>> getMedia(
             @PathVariable UUID mediaId,
             @AuthenticationPrincipal String userId) {
-        
+
         return mediaService.getMedia(mediaId, userId)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());
@@ -76,7 +77,7 @@ public class MediaController {
             @RequestParam(required = false) String tag,
             Pageable pageable,
             @AuthenticationPrincipal String userId) {
-        
+
         return mediaService.getUserMedia(userId, type, tag, pageable)
                 .map(ResponseEntity::ok);
     }
@@ -87,7 +88,7 @@ public class MediaController {
             @PathVariable UUID mediaId,
             @RequestBody @Valid MediaProcessingRequest request,
             @AuthenticationPrincipal String userId) {
-        
+
         return processingService.processMedia(mediaId, request, userId)
                 .map(ResponseEntity::ok);
     }
@@ -97,7 +98,7 @@ public class MediaController {
     public Mono<ResponseEntity<Void>> deleteMedia(
             @PathVariable UUID mediaId,
             @AuthenticationPrincipal String userId) {
-        
+
         return mediaService.deleteMedia(mediaId, userId)
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
@@ -107,7 +108,7 @@ public class MediaController {
     public Mono<ResponseEntity<Void>> purgeCDN(
             @PathVariable UUID mediaId,
             @AuthenticationPrincipal String userId) {
-        
+
         return cdnService.purgeMedia(mediaId, userId)
                 .then(Mono.just(ResponseEntity.ok().build()));
     }
@@ -118,7 +119,7 @@ public class MediaController {
             @RequestParam(required = false) UUID mediaId,
             @RequestParam(required = false) String period,
             @AuthenticationPrincipal String userId) {
-        
+
         return mediaService.getAnalytics(mediaId, userId, period)
                 .map(ResponseEntity::ok);
     }
@@ -127,8 +128,8 @@ public class MediaController {
 // MediaService/src/main/java/com/virtualcompanion/media/service/MediaService.java
 package com.virtualcompanion.media.service;
 
-import com.virtualcompanion.media.dto.*;
-import com.virtualcompanion.media.entity.Media;
+import com.virtualcompanion.media.dto .*;
+        import com.virtualcompanion.media.entity.Media;
 import com.virtualcompanion.media.repository.MediaRepository;
 import com.virtualcompanion.media.storage.StorageService;
 import com.virtualcompanion.media.validator.MediaValidator;
@@ -155,8 +156,8 @@ public class MediaService {
     private final MediaMapper mapper;
 
     @Transactional
-    public Mono<MediaResponse> uploadMedia(MultipartFile file, MediaType type, 
-                                          String userId, UUID characterId) {
+    public Mono<MediaResponse> uploadMedia(MultipartFile file, MediaType type,
+                                           String userId, UUID characterId) {
         return validator.validate(file, type)
                 .flatMap(validFile -> storageService.store(validFile, userId))
                 .flatMap(storedFile -> {
@@ -172,7 +173,7 @@ public class MediaService {
                             .thumbnailUrl(storedFile.getThumbnailUrl())
                             .metadata(storedFile.getMetadata())
                             .build();
-                    
+
                     return mediaRepository.save(media);
                 })
                 .map(mapper::toResponse)
@@ -183,8 +184,8 @@ public class MediaService {
     public Flux<MediaResponse> uploadBatch(List<MultipartFile> files, MediaType type, String userId) {
         return Flux.fromIterable(files)
                 .flatMap(file -> uploadMedia(file, type, userId, null))
-                .onErrorContinue((error, file) -> 
-                    log.error("Failed to upload file: {}", ((MultipartFile) file).getOriginalFilename(), error)
+                .onErrorContinue((error, file) ->
+                        log.error("Failed to upload file: {}", ((MultipartFile) file).getOriginalFilename(), error)
                 );
     }
 
@@ -193,7 +194,7 @@ public class MediaService {
                 .map(mapper::toResponse);
     }
 
-    public Mono<Page<MediaResponse>> getUserMedia(String userId, MediaType type, 
+    public Mono<Page<MediaResponse>> getUserMedia(String userId, MediaType type,
                                                   String tag, Pageable pageable) {
         if (type != null && tag != null) {
             return mediaRepository.findByUserIdAndTypeAndTag(UUID.fromString(userId), type, tag, pageable)
@@ -210,9 +211,9 @@ public class MediaService {
     @Transactional
     public Mono<Void> deleteMedia(UUID mediaId, String userId) {
         return mediaRepository.findByIdAndUserId(mediaId, UUID.fromString(userId))
-                .flatMap(media -> 
-                    storageService.delete(media.getUrl())
-                        .then(mediaRepository.delete(media))
+                .flatMap(media ->
+                        storageService.delete(media.getUrl())
+                                .then(mediaRepository.delete(media))
                 )
                 .doOnSuccess(v -> log.info("Media deleted: {}", mediaId));
     }
@@ -225,9 +226,9 @@ public class MediaService {
 // MediaService/src/main/java/com/virtualcompanion/media/service/MediaProcessingService.java
 package com.virtualcompanion.media.service;
 
-import com.virtualcompanion.media.dto.*;
-import com.virtualcompanion.media.processor.*;
-import lombok.RequiredArgsConstructor;
+import com.virtualcompanion.media.dto .*;
+        import com.virtualcompanion.media.processor .*;
+        import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
@@ -245,8 +246,8 @@ public class MediaProcessingService {
     private final AudioProcessor audioProcessor;
     private final RabbitTemplate rabbitTemplate;
 
-    public Mono<MediaProcessingResponse> processMedia(UUID mediaId, 
-                                                      MediaProcessingRequest request, 
+    public Mono<MediaProcessingResponse> processMedia(UUID mediaId,
+                                                      MediaProcessingRequest request,
                                                       String userId) {
         MediaProcessingJob job = MediaProcessingJob.builder()
                 .jobId(UUID.randomUUID())
@@ -285,8 +286,8 @@ public class MediaProcessingService {
 // ModerationService/src/main/java/com/virtualcompanion/moderation/controller/ModerationController.java
 package com.virtualcompanion.moderation.controller;
 
-import com.virtualcompanion.moderation.dto.*;
-import com.virtualcompanion.moderation.service.ContentModerationService;
+import com.virtualcompanion.moderation.dto .*;
+        import com.virtualcompanion.moderation.service.ContentModerationService;
 import com.virtualcompanion.moderation.service.UserModerationService;
 import com.virtualcompanion.moderation.service.AutoModerationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -297,8 +298,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
+import org.springframework.web.bind.annotation .*;
+        import reactor.core.publisher.Mono;
 
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -318,7 +319,7 @@ public class ModerationController {
     public Mono<ResponseEntity<ModerationResult>> checkContent(
             @RequestBody @Valid ContentCheckRequest request,
             @AuthenticationPrincipal String userId) {
-        
+
         return contentService.checkContent(request)
                 .map(ResponseEntity::ok);
     }
@@ -328,7 +329,7 @@ public class ModerationController {
     public Mono<ResponseEntity<ReportResponse>> reportContent(
             @RequestBody @Valid ReportRequest request,
             @AuthenticationPrincipal String userId) {
-        
+
         return userService.createReport(request, userId)
                 .map(response -> ResponseEntity.status(201).body(response));
     }
@@ -340,7 +341,7 @@ public class ModerationController {
             @RequestParam(required = false) ReportStatus status,
             @RequestParam(required = false) ReportType type,
             Pageable pageable) {
-        
+
         return userService.getReports(status, type, pageable)
                 .map(ResponseEntity::ok);
     }
@@ -352,7 +353,7 @@ public class ModerationController {
             @PathVariable UUID reportId,
             @RequestBody @Valid ReportUpdateRequest request,
             @AuthenticationPrincipal String moderatorId) {
-        
+
         return userService.updateReport(reportId, request, moderatorId)
                 .map(ResponseEntity::ok);
     }
@@ -364,7 +365,7 @@ public class ModerationController {
             @PathVariable UUID userId,
             @RequestBody @Valid BanRequest request,
             @AuthenticationPrincipal String moderatorId) {
-        
+
         return userService.banUser(userId, request, moderatorId)
                 .map(ResponseEntity::ok);
     }
@@ -375,7 +376,7 @@ public class ModerationController {
     public Mono<ResponseEntity<Void>> unbanUser(
             @PathVariable UUID userId,
             @AuthenticationPrincipal String moderatorId) {
-        
+
         return userService.unbanUser(userId, moderatorId)
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
@@ -393,7 +394,7 @@ public class ModerationController {
     @Operation(summary = "Create moderation rule")
     public Mono<ResponseEntity<ModerationRule>> createRule(
             @RequestBody @Valid ModerationRuleRequest request) {
-        
+
         return autoService.createRule(request)
                 .map(rule -> ResponseEntity.status(201).body(rule));
     }
@@ -403,7 +404,7 @@ public class ModerationController {
     @Operation(summary = "Get moderation statistics")
     public Mono<ResponseEntity<ModerationStats>> getStats(
             @RequestParam(required = false) String period) {
-        
+
         return autoService.getStats(period)
                 .map(ResponseEntity::ok);
     }
@@ -414,15 +415,15 @@ package com.virtualcompanion.moderation.service;
 
 import com.virtualcompanion.moderation.ai.TextModerationAI;
 import com.virtualcompanion.moderation.ai.ImageModerationAI;
-import com.virtualcompanion.moderation.dto.*;
-import com.virtualcompanion.moderation.entity.ModerationLog;
+import com.virtualcompanion.moderation.dto .*;
+        import com.virtualcompanion.moderation.entity.ModerationLog;
 import com.virtualcompanion.moderation.repository.ModerationLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util .*;
 
 @Slf4j
 @Service
@@ -436,19 +437,19 @@ public class ContentModerationService {
 
     public Mono<ModerationResult> checkContent(ContentCheckRequest request) {
         return Mono.defer(() -> {
-            switch (request.getType()) {
-                case TEXT:
-                    return checkText(request.getContent());
-                case IMAGE:
-                    return checkImage(request.getContent());
-                case MIXED:
-                    return checkMixed(request);
-                default:
-                    return Mono.just(ModerationResult.safe());
-            }
-        })
-        .flatMap(result -> logResult(request, result))
-        .doOnSuccess(result -> log.debug("Content moderation result: {}", result));
+                    switch (request.getType()) {
+                        case TEXT:
+                            return checkText(request.getContent());
+                        case IMAGE:
+                            return checkImage(request.getContent());
+                        case MIXED:
+                            return checkMixed(request);
+                        default:
+                            return Mono.just(ModerationResult.safe());
+                    }
+                })
+                .flatMap(result -> logResult(request, result))
+                .doOnSuccess(result -> log.debug("Content moderation result: {}", result));
     }
 
     private Mono<ModerationResult> checkText(String text) {
@@ -470,10 +471,10 @@ public class ContentModerationService {
 
     private Mono<ModerationResult> checkMixed(ContentCheckRequest request) {
         return Mono.zip(
-                checkText(request.getContent()),
-                checkImage(request.getImageUrl())
-        )
-        .map(tuple -> ModerationResult.combine(tuple.getT1(), tuple.getT2()));
+                        checkText(request.getContent()),
+                        checkImage(request.getImageUrl())
+                )
+                .map(tuple -> ModerationResult.combine(tuple.getT1(), tuple.getT2()));
     }
 
     private Mono<ModerationResult> logResult(ContentCheckRequest request, ModerationResult result) {
@@ -485,7 +486,7 @@ public class ContentModerationService {
                     .result(result)
                     .timestamp(new Date())
                     .build();
-            
+
             return logRepository.save(log)
                     .thenReturn(result);
         }
@@ -504,7 +505,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util .*;
 
 @Slf4j
 @Component
@@ -516,28 +517,28 @@ public class TextModerationAI {
 
     public Mono<ModerationResult> moderate(String text) {
         return Mono.zip(
-                checkToxicity(text),
-                checkInappropriateContent(text),
-                checkSpam(text)
-        )
-        .map(tuple -> {
-            ModerationResult.Builder builder = ModerationResult.builder();
-            
-            // Combine all results
-            if (tuple.getT1().isViolation()) {
-                builder.addViolation(ViolationType.TOXIC, tuple.getT1().getConfidence());
-            }
-            if (tuple.getT2().isViolation()) {
-                builder.addViolation(ViolationType.INAPPROPRIATE, tuple.getT2().getConfidence());
-            }
-            if (tuple.getT3().isViolation()) {
-                builder.addViolation(ViolationType.SPAM, tuple.getT3().getConfidence());
-            }
-            
-            return builder.build();
-        })
-        .doOnError(error -> log.error("AI moderation failed", error))
-        .onErrorReturn(ModerationResult.error("AI moderation unavailable"));
+                        checkToxicity(text),
+                        checkInappropriateContent(text),
+                        checkSpam(text)
+                )
+                .map(tuple -> {
+                    ModerationResult.Builder builder = ModerationResult.builder();
+
+                    // Combine all results
+                    if (tuple.getT1().isViolation()) {
+                        builder.addViolation(ViolationType.TOXIC, tuple.getT1().getConfidence());
+                    }
+                    if (tuple.getT2().isViolation()) {
+                        builder.addViolation(ViolationType.INAPPROPRIATE, tuple.getT2().getConfidence());
+                    }
+                    if (tuple.getT3().isViolation()) {
+                        builder.addViolation(ViolationType.SPAM, tuple.getT3().getConfidence());
+                    }
+
+                    return builder.build();
+                })
+                .doOnError(error -> log.error("AI moderation failed", error))
+                .onErrorReturn(ModerationResult.error("AI moderation unavailable"));
     }
 
     private Mono<ModerationResult> checkToxicity(String text) {
@@ -572,18 +573,18 @@ public class TextModerationAI {
                 "buy now", "click here", "limited offer", "act now",
                 "100% free", "no credit card", "make money fast"
         );
-        
+
         String lowerText = text.toLowerCase();
         long spamCount = spamPatterns.stream()
                 .filter(lowerText::contains)
                 .count();
-        
+
         if (spamCount >= 3) {
             return Mono.just(ModerationResult.violation(ViolationType.SPAM, 0.9));
         } else if (spamCount >= 1) {
             return Mono.just(ModerationResult.warning(ViolationType.SPAM, 0.5));
         }
-        
+
         return Mono.just(ModerationResult.safe());
     }
 }
@@ -622,7 +623,7 @@ public class AuthenticationGatewayFilter extends AbstractGatewayFilterFactory<Au
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
-            
+
             if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
                 return onError(exchange, "No authorization header", HttpStatus.UNAUTHORIZED);
             }
@@ -633,14 +634,14 @@ public class AuthenticationGatewayFilter extends AbstractGatewayFilterFactory<Au
             }
 
             String token = authHeader.substring(7);
-            
+
             return jwtValidator.validateToken(token)
                     .flatMap(claims -> {
                         ServerHttpRequest modifiedRequest = request.mutate()
                                 .header("X-User-Id", claims.getSubject())
                                 .header("X-User-Roles", String.join(",", claims.getRoles()))
                                 .build();
-                        
+
                         return chain.filter(exchange.mutate().request(modifiedRequest).build());
                     })
                     .onErrorResume(error -> {
@@ -654,18 +655,18 @@ public class AuthenticationGatewayFilter extends AbstractGatewayFilterFactory<Au
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(httpStatus);
         response.getHeaders().add("Content-Type", "application/json");
-        
+
         String body = String.format("{\"error\":\"%s\",\"status\":%d}", error, httpStatus.value());
         return response.writeWith(Mono.just(response.bufferFactory().wrap(body.getBytes())));
     }
 
     public static class Config {
         private boolean enabled = true;
-        
+
         public boolean isEnabled() {
             return enabled;
         }
-        
+
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
         }
@@ -713,7 +714,7 @@ public class RateLimitingGatewayFilter extends AbstractGatewayFilterFactory<Rate
                 return chain.filter(exchange);
             } else {
                 exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-                exchange.getResponse().getHeaders().add("X-Rate-Limit-Retry-After", 
+                exchange.getResponse().getHeaders().add("X-Rate-Limit-Retry-After",
                         String.valueOf(config.getRefillPeriod()));
                 return exchange.getResponse().setComplete();
             }
@@ -734,12 +735,29 @@ public class RateLimitingGatewayFilter extends AbstractGatewayFilterFactory<Rate
         private int refillPeriod = 60;
 
         // Getters and setters
-        public int getCapacity() { return capacity; }
-        public void setCapacity(int capacity) { this.capacity = capacity; }
-        public int getRefillTokens() { return refillTokens; }
-        public void setRefillTokens(int refillTokens) { this.refillTokens = refillTokens; }
-        public int getRefillPeriod() { return refillPeriod; }
-        public void setRefillPeriod(int refillPeriod) { this.refillPeriod = refillPeriod; }
+        public int getCapacity() {
+            return capacity;
+        }
+
+        public void setCapacity(int capacity) {
+            this.capacity = capacity;
+        }
+
+        public int getRefillTokens() {
+            return refillTokens;
+        }
+
+        public void setRefillTokens(int refillTokens) {
+            this.refillTokens = refillTokens;
+        }
+
+        public int getRefillPeriod() {
+            return refillPeriod;
+        }
+
+        public void setRefillPeriod(int refillPeriod) {
+            this.refillPeriod = refillPeriod;
+        }
     }
 }
 
@@ -774,10 +792,10 @@ public class LoggingGatewayFilter extends AbstractGatewayFilterFactory<LoggingGa
 
             String requestId = UUID.randomUUID().toString();
             ServerHttpRequest request = exchange.getRequest();
-            
-            log.info("Request: {} {} from {} with ID: {}", 
-                    request.getMethod(), 
-                    request.getPath(), 
+
+            log.info("Request: {} {} from {} with ID: {}",
+                    request.getMethod(),
+                    request.getPath(),
                     request.getRemoteAddress(),
                     requestId);
 
@@ -787,10 +805,10 @@ public class LoggingGatewayFilter extends AbstractGatewayFilterFactory<LoggingGa
                     .then(Mono.fromRunnable(() -> {
                         ServerHttpResponse response = exchange.getResponse();
                         long duration = System.currentTimeMillis() - startTime;
-                        
-                        log.info("Response: {} for request {} in {}ms", 
-                                response.getStatusCode(), 
-                                requestId, 
+
+                        log.info("Response: {} for request {} in {}ms",
+                                response.getStatusCode(),
+                                requestId,
                                 duration);
                     }));
         };
@@ -798,17 +816,22 @@ public class LoggingGatewayFilter extends AbstractGatewayFilterFactory<LoggingGa
 
     public static class Config {
         private boolean enabled = true;
-        
-        public boolean isEnabled() { return enabled; }
-        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
     }
 }
 
 // Gateway/src/main/java/com/virtualcompanion/gateway/config/GatewayConfiguration.java
 package com.virtualcompanion.gateway.config;
 
-import com.virtualcompanion.gateway.filter.*;
-import org.springframework.cloud.gateway.route.RouteLocator;
+import com.virtualcompanion.gateway.filter .*;
+        import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -818,9 +841,9 @@ public class GatewayConfiguration {
 
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder,
-                                          AuthenticationGatewayFilter authFilter,
-                                          RateLimitingGatewayFilter rateLimitFilter,
-                                          LoggingGatewayFilter loggingFilter) {
+                                           AuthenticationGatewayFilter authFilter,
+                                           RateLimitingGatewayFilter rateLimitFilter,
+                                           LoggingGatewayFilter loggingFilter) {
         return builder.routes()
                 // User Service
                 .route("user-service", r -> r
@@ -830,7 +853,7 @@ public class GatewayConfiguration {
                                 .filter(authFilter.apply(new AuthenticationGatewayFilter.Config()))
                                 .filter(rateLimitFilter.apply(createRateLimitConfig(200, 60))))
                         .uri("lb://USER-SERVICE"))
-                
+
                 // Character Service
                 .route("character-service", r -> r
                         .path("/api/v1/characters/**")
@@ -839,7 +862,7 @@ public class GatewayConfiguration {
                                 .filter(authFilter.apply(new AuthenticationGatewayFilter.Config()))
                                 .filter(rateLimitFilter.apply(createRateLimitConfig(100, 60))))
                         .uri("lb://CHARACTER-SERVICE"))
-                
+
                 // Conversation Service
                 .route("conversation-service", r -> r
                         .path("/api/v1/conversations/**", "/api/v1/messages/**")
@@ -848,7 +871,7 @@ public class GatewayConfiguration {
                                 .filter(authFilter.apply(new AuthenticationGatewayFilter.Config()))
                                 .filter(rateLimitFilter.apply(createRateLimitConfig(300, 60))))
                         .uri("lb://CONVERSATION-SERVICE"))
-                
+
                 // Media Service
                 .route("media-service", r -> r
                         .path("/api/v1/media/**")
@@ -857,7 +880,7 @@ public class GatewayConfiguration {
                                 .filter(authFilter.apply(new AuthenticationGatewayFilter.Config()))
                                 .filter(rateLimitFilter.apply(createRateLimitConfig(50, 60))))
                         .uri("lb://MEDIA-SERVICE"))
-                
+
                 // Moderation Service
                 .route("moderation-service", r -> r
                         .path("/api/v1/moderation/**")
@@ -866,7 +889,7 @@ public class GatewayConfiguration {
                                 .filter(authFilter.apply(new AuthenticationGatewayFilter.Config()))
                                 .filter(rateLimitFilter.apply(createRateLimitConfig(100, 60))))
                         .uri("lb://MODERATION-SERVICE"))
-                
+
                 // Billing Service
                 .route("billing-service", r -> r
                         .path("/api/v1/billing/**", "/api/v1/subscriptions/**")
@@ -875,14 +898,14 @@ public class GatewayConfiguration {
                                 .filter(authFilter.apply(new AuthenticationGatewayFilter.Config()))
                                 .filter(rateLimitFilter.apply(createRateLimitConfig(50, 60))))
                         .uri("lb://BILLING-SERVICE"))
-                
+
                 // WebSocket Route
                 .route("websocket", r -> r
                         .path("/ws/**")
                         .filters(f -> f
                                 .filter(loggingFilter.apply(new LoggingGatewayFilter.Config())))
                         .uri("lb:ws://CONVERSATION-SERVICE"))
-                
+
                 // Public routes (no auth)
                 .route("public", r -> r
                         .path("/api/v1/auth/**", "/api/v1/public/**")
@@ -890,7 +913,7 @@ public class GatewayConfiguration {
                                 .filter(loggingFilter.apply(new LoggingGatewayFilter.Config()))
                                 .filter(rateLimitFilter.apply(createRateLimitConfig(30, 60))))
                         .uri("lb://USER-SERVICE"))
-                
+
                 .build();
     }
 

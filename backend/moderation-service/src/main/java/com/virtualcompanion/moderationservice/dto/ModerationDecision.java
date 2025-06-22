@@ -1,7 +1,7 @@
 package com.virtualcompanion.moderationservice.dto;
 
 public class ModerationDecision {
-    
+
     private UUID decisionId;
     private UUID moderationRequestId;
     private String decision; // approve, reject, escalate, warn

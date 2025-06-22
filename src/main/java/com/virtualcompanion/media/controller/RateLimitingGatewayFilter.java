@@ -22,7 +22,7 @@ public class RateLimitingGatewayFilter extends AbstractGatewayFilterFactory<Rate
                 return chain.filter(exchange);
             } else {
                 exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-                exchange.getResponse().getHeaders().add("X-Rate-Limit-Retry-After", 
+                exchange.getResponse().getHeaders().add("X-Rate-Limit-Retry-After",
                         String.valueOf(config.getRefillPeriod()));
                 return exchange.getResponse().setComplete();
             }
@@ -43,11 +43,28 @@ public class RateLimitingGatewayFilter extends AbstractGatewayFilterFactory<Rate
         private int refillPeriod = 60;
 
         // Getters and setters
-        public int getCapacity() { return capacity; }
-        public void setCapacity(int capacity) { this.capacity = capacity; }
-        public int getRefillTokens() { return refillTokens; }
-        public void setRefillTokens(int refillTokens) { this.refillTokens = refillTokens; }
-        public int getRefillPeriod() { return refillPeriod; }
-        public void setRefillPeriod(int refillPeriod) { this.refillPeriod = refillPeriod; }
+        public int getCapacity() {
+            return capacity;
+        }
+
+        public void setCapacity(int capacity) {
+            this.capacity = capacity;
+        }
+
+        public int getRefillTokens() {
+            return refillTokens;
+        }
+
+        public void setRefillTokens(int refillTokens) {
+            this.refillTokens = refillTokens;
+        }
+
+        public int getRefillPeriod() {
+            return refillPeriod;
+        }
+
+        public void setRefillPeriod(int refillPeriod) {
+            this.refillPeriod = refillPeriod;
+        }
     }
 }

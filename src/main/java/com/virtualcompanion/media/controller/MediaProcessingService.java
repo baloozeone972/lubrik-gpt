@@ -7,8 +7,8 @@ public class MediaProcessingService {
     private final AudioProcessor audioProcessor;
     private final RabbitTemplate rabbitTemplate;
 
-    public Mono<MediaProcessingResponse> processMedia(UUID mediaId, 
-                                                      MediaProcessingRequest request, 
+    public Mono<MediaProcessingResponse> processMedia(UUID mediaId,
+                                                      MediaProcessingRequest request,
                                                       String userId) {
         MediaProcessingJob job = MediaProcessingJob.builder()
                 .jobId(UUID.randomUUID())

@@ -1,7 +1,7 @@
 package com.virtualcompanion.conversationservice.dto;
 
 public class ConversationResponse {
-    
+
     private UUID id;
     private UUID userId;
     private UUID characterId;

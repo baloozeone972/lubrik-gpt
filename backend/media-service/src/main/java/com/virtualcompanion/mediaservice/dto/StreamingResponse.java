@@ -1,7 +1,7 @@
 package com.virtualcompanion.mediaservice.dto;
 
 public class StreamingResponse {
-    
+
     private String sessionId;
     private String kurentoSessionId;
     private String sdpOffer;

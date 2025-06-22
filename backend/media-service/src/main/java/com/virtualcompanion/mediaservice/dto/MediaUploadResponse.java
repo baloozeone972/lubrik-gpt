@@ -1,7 +1,7 @@
 package com.virtualcompanion.mediaservice.dto;
 
 public class MediaUploadResponse {
-    
+
     private UUID id;
     private String fileName;
     private String contentType;

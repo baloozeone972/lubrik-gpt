@@ -1,7 +1,7 @@
 package com.virtualcompanion.mediaservice.dto;
 
 public class MediaStatisticsResponse {
-    
+
     private Long totalFiles;
     private Long totalSize;
     private Map<String, Long> filesByType;

@@ -467,19 +467,19 @@ export function ChatWindow({ conversationId, characterId }: ChatWindowProps) {
     <scope>test</scope>
 </dependency>
 <dependency>
-    <groupId>org.testcontainers</groupId>
-    <artifactId>testcontainers</artifactId>
-    <scope>test</scope>
+<groupId>org.testcontainers</groupId>
+<artifactId>testcontainers</artifactId>
+<scope>test</scope>
 </dependency>
 <dependency>
-    <groupId>org.testcontainers</groupId>
-    <artifactId>postgresql</artifactId>
-    <scope>test</scope>
+<groupId>org.testcontainers</groupId>
+<artifactId>postgresql</artifactId>
+<scope>test</scope>
 </dependency>
 <dependency>
-    <groupId>org.mockito</groupId>
-    <artifactId>mockito-inline</artifactId>
-    <scope>test</scope>
+<groupId>org.mockito</groupId>
+<artifactId>mockito-inline</artifactId>
+<scope>test</scope>
 </dependency>
 ```
 
@@ -510,32 +510,32 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
-    
+
     @Mock
     private UserRepository userRepository;
-    
+
     @Mock
     private PasswordEncoder passwordEncoder;
-    
+
     @Mock
     private EmailService emailService;
-    
+
     @InjectMocks
     private UserServiceImpl userService;
-    
+
     private RegisterRequest validRequest;
-    
+
     @BeforeEach
     void setUp() {
         validRequest = RegisterRequest.builder()
-            .email("test@example.com")
-            .username("testuser")
-            .password("SecurePass123!")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .acceptedTerms(true)
-            .build();
+                .email("test@example.com")
+                .username("testuser")
+                .password("SecurePass123!")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .acceptedTerms(true)
+                .build();
     }
-    
+
     @Test
     void registerUser_Success() {
         // Given
@@ -543,47 +543,47 @@ class UserServiceTest {
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded_password");
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
-        
+
         // When
         User result = userService.register(validRequest);
-        
+
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getEmail()).isEqualTo("test@example.com");
         assertThat(result.getUsername()).isEqualTo("testuser");
         verify(emailService).sendVerificationEmail(any(User.class));
     }
-    
+
     @Test
     void registerUser_EmailExists_ThrowsException() {
         // Given
         when(userRepository.existsByEmail(anyString())).thenReturn(true);
-        
+
         // When/Then
         assertThatThrownBy(() -> userService.register(validRequest))
-            .isInstanceOf(EmailAlreadyExistsException.class)
-            .hasMessage("Email already registered");
+                .isInstanceOf(EmailAlreadyExistsException.class)
+                .hasMessage("Email already registered");
     }
-    
+
     @Test
     void changePassword_Success() {
         // Given
         UUID userId = UUID.randomUUID();
         User user = User.builder()
-            .id(userId)
-            .password("old_encoded_password")
-            .build();
-            
+                .id(userId)
+                .password("old_encoded_password")
+                .build();
+
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("oldPassword", "old_encoded_password")).thenReturn(true);
         when(passwordEncoder.encode("newPassword")).thenReturn("new_encoded_password");
-        
+
         // When
         userService.changePassword(userId, "oldPassword", "newPassword");
-        
+
         // Then
-        verify(userRepository).save(argThat(u -> 
-            u.getPassword().equals("new_encoded_password")
+        verify(userRepository).save(argThat(u ->
+                u.getPassword().equals("new_encoded_password")
         ));
     }
 }
@@ -615,74 +615,74 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @Testcontainers
 class UserRepositoryIntegrationTest {
-    
+
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test");
-    
+
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
     }
-    
+
     @Autowired
     private TestEntityManager entityManager;
-    
+
     @Autowired
     private UserRepository userRepository;
-    
+
     @Test
     void findByEmail_ExistingUser_ReturnsUser() {
         // Given
         User user = User.builder()
-            .email("test@example.com")
-            .username("testuser")
-            .password("encoded_password")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .status(UserStatus.ACTIVE)
-            .build();
+                .email("test@example.com")
+                .username("testuser")
+                .password("encoded_password")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .status(UserStatus.ACTIVE)
+                .build();
         entityManager.persistAndFlush(user);
-        
+
         // When
         Optional<User> found = userRepository.findByEmail("test@example.com");
-        
+
         // Then
         assertThat(found).isPresent();
         assertThat(found.get().getUsername()).isEqualTo("testuser");
     }
-    
+
     @Test
     void countByStatusAndCreatedAtBetween_ReturnsCorrectCount() {
         // Given
         LocalDateTime startDate = LocalDateTime.now().minusDays(7);
         LocalDateTime endDate = LocalDateTime.now();
-        
+
         createUser("user1@example.com", UserStatus.ACTIVE);
         createUser("user2@example.com", UserStatus.ACTIVE);
         createUser("user3@example.com", UserStatus.PENDING_VERIFICATION);
         entityManager.flush();
-        
+
         // When
         long count = userRepository.countByStatusAndCreatedAtBetween(
-            UserStatus.ACTIVE, startDate, endDate
+                UserStatus.ACTIVE, startDate, endDate
         );
-        
+
         // Then
         assertThat(count).isEqualTo(2);
     }
-    
+
     private User createUser(String email, UserStatus status) {
         User user = User.builder()
-            .email(email)
-            .username(email.split("@")[0])
-            .password("password")
-            .birthDate(LocalDate.of(1990, 1, 1))
-            .status(status)
-            .build();
+                .email(email)
+                .username(email.split("@")[0])
+                .password("password")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .status(status)
+                .build();
         return entityManager.persist(user);
     }
 }
@@ -720,14 +720,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Testcontainers
 class UserControllerIntegrationTest {
-    
+
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
-    
+
     @Container
     static GenericContainer<?> redis = new GenericContainer<>("redis:7-alpine")
             .withExposedPorts(6379);
-    
+
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
@@ -736,34 +736,34 @@ class UserControllerIntegrationTest {
         registry.add("spring.redis.host", redis::getHost);
         registry.add("spring.redis.port", redis::getFirstMappedPort);
     }
-    
+
     @Autowired
     private MockMvc mockMvc;
-    
+
     @Autowired
     private ObjectMapper objectMapper;
-    
+
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
-    
+
     private String authToken;
     private User testUser;
-    
+
     @BeforeEach
     void setUp() {
         testUser = createTestUser();
         authToken = jwtTokenProvider.generateAccessToken(testUser);
     }
-    
+
     @Test
     void getProfile_Authenticated_ReturnsProfile() throws Exception {
         mockMvc.perform(get("/api/v1/users/profile")
-                .header("Authorization", "Bearer " + authToken))
+                        .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.email").value(testUser.getEmail()))
                 .andExpect(jsonPath("$.data.username").value(testUser.getUsername()));
     }
-    
+
     @Test
     void updateProfile_ValidData_UpdatesSuccessfully() throws Exception {
         UpdateProfileRequest request = UpdateProfileRequest.builder()
@@ -771,17 +771,17 @@ class UserControllerIntegrationTest {
                 .lastName("Doe")
                 .phoneNumber("+33612345678")
                 .build();
-        
+
         mockMvc.perform(put("/api/v1/users/profile")
-                .header("Authorization", "Bearer " + authToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .header("Authorization", "Bearer " + authToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.firstName").value("John"))
                 .andExpect(jsonPath("$.data.lastName").value("Doe"));
     }
-    
+
     @Test
     void getProfile_Unauthorized_Returns401() throws Exception {
         mockMvc.perform(get("/api/v1/users/profile"))
@@ -914,45 +914,45 @@ test.describe('User Journey', () => {
 <!-- user-service-load-test.jmx -->
 <?xml version="1.0" encoding="UTF-8"?>
 <jmeterTestPlan version="1.2" properties="5.0">
-  <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="User Service Load Test">
-    <elementProp name="TestPlan.user_defined_variables" elementType="Arguments">
-      <collectionProp name="Arguments.arguments">
-        <elementProp name="BASE_URL" elementType="Argument">
-          <stringProp name="Argument.name">BASE_URL</stringProp>
-          <stringProp name="Argument.value">http://localhost:8080</stringProp>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="User Service Load Test">
+        <elementProp name="TestPlan.user_defined_variables" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+                <elementProp name="BASE_URL" elementType="Argument">
+                    <stringProp name="Argument.name">BASE_URL</stringProp>
+                    <stringProp name="Argument.value">http://localhost:8080</stringProp>
+                </elementProp>
+            </collectionProp>
         </elementProp>
-      </collectionProp>
-    </elementProp>
-  </TestPlan>
-  
-  <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="API Load Test">
-    <stringProp name="ThreadGroup.num_threads">100</stringProp>
-    <stringProp name="ThreadGroup.ramp_time">30</stringProp>
-    <stringProp name="ThreadGroup.duration">300</stringProp>
-    
-    <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Login Request">
-      <stringProp name="HTTPSampler.path">/api/v1/auth/login</stringProp>
-      <stringProp name="HTTPSampler.method">POST</stringProp>
-      <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-      <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-        <collectionProp name="Arguments.arguments">
-          <elementProp name="email" elementType="HTTPArgument">
-            <stringProp name="Argument.value">test${__threadNum}@example.com</stringProp>
-          </elementProp>
-          <elementProp name="password" elementType="HTTPArgument">
-            <stringProp name="Argument.value">Password123!</stringProp>
-          </elementProp>
-        </collectionProp>
-      </elementProp>
-    </HTTPSamplerProxy>
-    
-    <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Code Assertion">
-      <collectionProp name="Asserion.test_strings">
-        <stringProp name="49586">200</stringProp>
-      </collectionProp>
-      <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
-    </ResponseAssertion>
-  </ThreadGroup>
+    </TestPlan>
+
+    <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="API Load Test">
+        <stringProp name="ThreadGroup.num_threads">100</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">30</stringProp>
+        <stringProp name="ThreadGroup.duration">300</stringProp>
+
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Login Request">
+            <stringProp name="HTTPSampler.path">/api/v1/auth/login</stringProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                <collectionProp name="Arguments.arguments">
+                    <elementProp name="email" elementType="HTTPArgument">
+                        <stringProp name="Argument.value">test${__threadNum}@example.com</stringProp>
+                    </elementProp>
+                    <elementProp name="password" elementType="HTTPArgument">
+                        <stringProp name="Argument.value">Password123!</stringProp>
+                    </elementProp>
+                </collectionProp>
+            </elementProp>
+        </HTTPSamplerProxy>
+
+        <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Code Assertion">
+            <collectionProp name="Asserion.test_strings">
+                <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+        </ResponseAssertion>
+    </ThreadGroup>
 </jmeterTestPlan>
 ```
 
@@ -1025,9 +1025,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 env:
   JAVA_VERSION: '21'
@@ -1037,7 +1037,7 @@ jobs:
   # Backend Tests
   backend-test:
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15
@@ -1051,7 +1051,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-      
+
       redis:
         image: redis:7
         options: >-
@@ -1061,110 +1061,110 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-    
+
     strategy:
       matrix:
-        service: [user-service, character-service, conversation-service, media-service, billing-service, moderation-service]
-    
+        service: [ user-service, character-service, conversation-service, media-service, billing-service, moderation-service ]
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
-      
+
       - name: Cache Maven dependencies
         uses: actions/cache@v3
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-      
+
       - name: Run tests
         working-directory: backend/${{ matrix.service }}
         run: |
           mvn clean test
           mvn jacoco:report
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
           file: backend/${{ matrix.service }}/target/site/jacoco/jacoco.xml
           flags: ${{ matrix.service }}
-  
+
   # Frontend Tests
   frontend-test:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: frontend/web-app/package-lock.json
-      
+
       - name: Install dependencies
         working-directory: frontend/web-app
         run: npm ci
-      
+
       - name: Run linting
         working-directory: frontend/web-app
         run: npm run lint
-      
+
       - name: Run unit tests
         working-directory: frontend/web-app
         run: npm run test:ci
-      
+
       - name: Build
         working-directory: frontend/web-app
         run: npm run build
-  
+
   # E2E Tests
   e2e-test:
     runs-on: ubuntu-latest
-    needs: [backend-test, frontend-test]
-    
+    needs: [ backend-test, frontend-test ]
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
-      
+
       - name: Start services with Docker Compose
         run: |
           docker-compose -f docker-compose.test.yml up -d
           ./scripts/wait-for-services.sh
-      
+
       - name: Install Playwright
         working-directory: frontend/web-app
         run: |
           npm ci
           npx playwright install --with-deps
-      
+
       - name: Run E2E tests
         working-directory: frontend/web-app
         run: npm run test:e2e
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: playwright-report
           path: frontend/web-app/playwright-report
-  
+
   # Security Scan
   security-scan:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -1172,34 +1172,34 @@ jobs:
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
-      
+
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: 'trivy-results.sarif'
-  
+
   # Build and Push Docker Images
   build-push:
     runs-on: ubuntu-latest
-    needs: [backend-test, frontend-test, e2e-test]
+    needs: [ backend-test, frontend-test, e2e-test ]
     if: github.ref == 'refs/heads/main'
-    
+
     strategy:
       matrix:
-        service: [user-service, character-service, conversation-service, media-service, billing-service, moderation-service, gateway, web-app]
-    
+        service: [ user-service, character-service, conversation-service, media-service, billing-service, moderation-service, gateway, web-app ]
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      
+
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      
+
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -1210,30 +1210,30 @@ jobs:
             virtualcompanion/${{ matrix.service }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-  
+
   # Deploy to Kubernetes
   deploy:
     runs-on: ubuntu-latest
     needs: build-push
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
-      
+
       - name: Configure kubectl
         run: |
           echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > kubeconfig
           export KUBECONFIG=kubeconfig
-      
+
       - name: Update deployments
         run: |
           kubectl set image deployment/user-service user-service=virtualcompanion/user-service:${{ github.sha }}
           kubectl set image deployment/character-service character-service=virtualcompanion/character-service:${{ github.sha }}
           # ... autres services
-          
+
       - name: Wait for rollout
         run: |
           kubectl rollout status deployment/user-service
@@ -1293,7 +1293,8 @@ echo "✅ All tests passed!"
 
 ## Conclusion
 
-Cette documentation complète couvre l'ensemble du développement, du déploiement et des tests de l'application Virtual Companion. Les points clés à retenir :
+Cette documentation complète couvre l'ensemble du développement, du déploiement et des tests de l'application Virtual
+Companion. Les points clés à retenir :
 
 1. **Architecture modulaire** : Chaque service est indépendant et peut être développé/déployé séparément
 2. **Tests complets** : Unitaires, intégration, E2E et performance
@@ -1302,6 +1303,7 @@ Cette documentation complète couvre l'ensemble du développement, du déploieme
 5. **Sécurité renforcée** : Authentification, modération et conformité légale
 
 Pour démarrer le développement :
+
 1. Cloner le repository
 2. Configurer l'environnement (.env)
 3. Lancer l'infrastructure (docker-compose)

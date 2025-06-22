@@ -1,7 +1,7 @@
 package com.virtualcompanion.billingservice.dto;
 
 public class BillingEventRequest {
-    
+
     private String eventType;
     private UUID userId;
     private UUID resourceId;

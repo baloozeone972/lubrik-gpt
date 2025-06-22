@@ -1,7 +1,7 @@
 package com.virtualcompanion.billingservice.dto;
 
 public class InvoiceLineItem {
-    
+
     private String description;
     private Integer quantity;
     private BigDecimal unitPrice;

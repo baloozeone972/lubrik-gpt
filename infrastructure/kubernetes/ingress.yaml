@@ -1,4 +1,3 @@
-
 # kubernetes/ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -14,17 +13,17 @@ metadata:
     nginx.ingress.kubernetes.io/cors-allow-origin: "https://app.virtualcompanion.ai"
 spec:
   tls:
-  - hosts:
-    - api.virtualcompanion.ai
-    secretName: api-tls-secret
+    - hosts:
+        - api.virtualcompanion.ai
+      secretName: api-tls-secret
   rules:
-  - host: api.virtualcompanion.ai
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: api-gateway
-            port:
-              number: 8080
+    - host: api.virtualcompanion.ai
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8080

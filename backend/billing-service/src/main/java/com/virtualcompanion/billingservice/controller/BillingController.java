@@ -28,9 +28,9 @@ public class BillingController {
     public Mono<SubscriptionResponseDto> subscribe(
             @Valid @RequestBody SubscribeRequestDto request,
             @CurrentUser UserPrincipal user) {
-        
+
         log.info("User {} subscribing to plan: {}", user.getId(), request.getPlanId());
-        
+
         return subscriptionService.createSubscription(user.getId(), request)
                 .doOnSuccess(sub -> log.info("Subscription created: {}", sub.getId()));
     }
@@ -40,7 +40,7 @@ public class BillingController {
     public Mono<SubscriptionDto> upgradeSubscription(
             @Valid @RequestBody UpgradeRequestDto request,
             @CurrentUser UserPrincipal user) {
-        
+
         return subscriptionService.upgradeSubscription(user.getId(), request.getNewPlanId());
     }
 
@@ -49,7 +49,7 @@ public class BillingController {
     public Mono<SubscriptionDto> downgradeSubscription(
             @Valid @RequestBody DowngradeRequestDto request,
             @CurrentUser UserPrincipal user) {
-        
+
         return subscriptionService.downgradeSubscription(user.getId(), request.getNewPlanId());
     }
 
@@ -58,7 +58,7 @@ public class BillingController {
     public Mono<CancellationResponseDto> cancelSubscription(
             @Valid @RequestBody CancelRequestDto request,
             @CurrentUser UserPrincipal user) {
-        
+
         return subscriptionService.cancelSubscription(user.getId(), request);
     }
 
@@ -81,7 +81,7 @@ public class BillingController {
     public Mono<PaymentMethodDto> addPaymentMethod(
             @Valid @RequestBody AddPaymentMethodDto request,
             @CurrentUser UserPrincipal user) {
-        
+
         return paymentService.addPaymentMethod(user.getId(), request);
     }
 
@@ -90,7 +90,7 @@ public class BillingController {
     public Mono<Void> setDefaultPaymentMethod(
             @PathVariable String methodId,
             @CurrentUser UserPrincipal user) {
-        
+
         return paymentService.setDefaultPaymentMethod(user.getId(), methodId);
     }
 
@@ -100,7 +100,7 @@ public class BillingController {
     public Mono<Void> removePaymentMethod(
             @PathVariable String methodId,
             @CurrentUser UserPrincipal user) {
-        
+
         return paymentService.removePaymentMethod(user.getId(), methodId);
     }
 
@@ -111,7 +111,7 @@ public class BillingController {
     public Mono<CheckoutSessionDto> createCheckoutSession(
             @Valid @RequestBody CheckoutRequestDto request,
             @CurrentUser UserPrincipal user) {
-        
+
         return switch (request.getProvider()) {
             case STRIPE -> stripeService.createCheckoutSession(user.getId(), request);
             case PAYPAL -> payPalService.createCheckoutSession(user.getId(), request);
@@ -124,7 +124,7 @@ public class BillingController {
     public Mono<PaymentConfirmationDto> confirmPayment(
             @Valid @RequestBody PaymentConfirmDto request,
             @CurrentUser UserPrincipal user) {
-        
+
         return paymentService.confirmPayment(user.getId(), request);
     }
 
@@ -135,7 +135,7 @@ public class BillingController {
             @RequestParam(required = false) LocalDate endDate,
             Pageable pageable,
             @CurrentUser UserPrincipal user) {
-        
+
         return paymentService.getUserPaymentHistory(user.getId(), startDate, endDate, pageable);
     }
 
@@ -146,7 +146,7 @@ public class BillingController {
     public Mono<Page<InvoiceDto>> getInvoices(
             Pageable pageable,
             @CurrentUser UserPrincipal user) {
-        
+
         return invoiceService.getUserInvoices(user.getId(), pageable);
     }
 
@@ -155,7 +155,7 @@ public class BillingController {
     public Mono<InvoiceDto> getInvoice(
             @PathVariable String invoiceId,
             @CurrentUser UserPrincipal user) {
-        
+
         return invoiceService.getInvoice(invoiceId, user.getId());
     }
 
@@ -164,11 +164,11 @@ public class BillingController {
     public Mono<ResponseEntity<byte[]>> downloadInvoice(
             @PathVariable String invoiceId,
             @CurrentUser UserPrincipal user) {
-        
+
         return invoiceService.generateInvoicePdf(invoiceId, user.getId())
                 .map(pdf -> ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_PDF)
-                        .header("Content-Disposition", 
+                        .header("Content-Disposition",
                                 "attachment; filename=invoice-" + invoiceId + ".pdf")
                         .body(pdf));
     }
@@ -186,7 +186,7 @@ public class BillingController {
     public Flux<MonthlyUsageDto> getUsageHistory(
             @RequestParam(defaultValue = "6") int months,
             @CurrentUser UserPrincipal user) {
-        
+
         return usageService.getUsageHistory(user.getId(), months);
     }
 
@@ -203,7 +203,7 @@ public class BillingController {
     public Mono<ResponseEntity<String>> handleStripeWebhook(
             @RequestHeader("Stripe-Signature") String signature,
             @RequestBody String payload) {
-        
+
         return stripeService.handleWebhook(payload, signature)
                 .map(event -> ResponseEntity.ok("Webhook processed"))
                 .onErrorResume(error -> {
@@ -217,7 +217,7 @@ public class BillingController {
     public Mono<ResponseEntity<String>> handlePayPalWebhook(
             @RequestHeader Map<String, String> headers,
             @RequestBody String payload) {
-        
+
         return payPalService.handleWebhook(payload, headers)
                 .map(event -> ResponseEntity.ok("Webhook processed"))
                 .onErrorResume(error -> {
@@ -235,7 +235,7 @@ public class BillingController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String planId,
             Pageable pageable) {
-        
+
         return subscriptionService.getAllSubscriptions(status, planId, pageable);
     }
 
@@ -245,7 +245,7 @@ public class BillingController {
     public Mono<RevenueReportDto> getRevenueReport(
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate) {
-        
+
         return subscriptionService.generateRevenueReport(startDate, endDate);
     }
 
@@ -254,7 +254,7 @@ public class BillingController {
     @PreAuthorize("hasRole('ADMIN')")
     public Mono<RefundResponseDto> processRefund(
             @Valid @RequestBody RefundRequestDto request) {
-        
+
         return paymentService.processRefund(request);
     }
 }

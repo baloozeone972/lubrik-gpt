@@ -1,21 +1,47 @@
 package com.virtualcompanion.userservice.service;
 
-record
-        UserCompliance compliance = UserCompliance.builder()
-                .userId(user.getId())
-                .termsAcceptedDate(LocalDateTime.now())
-                .termsVersion("1.0")
-                .jurisdiction(request.getJurisdiction())
-                .build();
+// Send verification email
+String verificationToken = generateVerificationToken(user.getId(), VerificationToken.TokenType.EMAIL_VERIFICATION); =UserCompliance.
+
+builder()
+                .
+
+userId(user.getId())
+        .
+
+termsAcceptedDate(LocalDateTime.now())
+        .
+
+termsVersion("1.0")
+                .
+
+jurisdiction(request.getJurisdiction())
+        .
+
+build();
         
-        complianceRepository.save(compliance);
-        
-        // Send verification email
-        String verificationToken = generateVerificationToken(user.getId(), VerificationToken.TokenType.EMAIL_VERIFICATION);
-        emailService.sendVerificationEmail(user.getEmail(), user.getFirstName(), verificationToken);
-        
+        complianceRepository.
+
+save(compliance);
+
+sendVerificationEmail(user.getEmail(),user
+        emailService.
+
+getFirstName(),verificationToken.
+
+send("user-events","user.created",
+             new UserCreatedEvent(user.getId(),user);
+
         // Publish user created event
-        kafkaTemplate.send("user-events", "user.created", 
-            new UserCreatedEvent(user.getId(), user.getEmail(), user.getUsername()));
-        
-        log.info("User created successfully with ID: {}
+        kafkaTemplate.
+
+getEmail(),user.
+
+getUsername().
+
+info("User created successfully with ID: {}));
+
+        log.
+
+record
+UserCompliance compliance

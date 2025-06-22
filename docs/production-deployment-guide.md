@@ -5,6 +5,7 @@
 ### 1. **Serveurs Recommandés**
 
 #### Option A : Architecture Monolithique (Démarrage)
+
 ```yaml
 # 1 serveur principal (32GB RAM, 8 vCPU)
 - Applications: Tous les microservices
@@ -19,16 +20,17 @@
 ```
 
 #### Option B : Architecture Distribuée (Scale)
+
 ```yaml
 # Cluster Kubernetes (3 nodes minimum)
 Node 1: Control Plane + Apps
 Node 2: Worker + Databases
 Node 3: GPU + AI Services
 
-# Load Balancer
-- Nginx ou Traefik
-- SSL Termination
-- Rate Limiting
+  # Load Balancer
+  - Nginx ou Traefik
+  - SSL Termination
+  - Rate Limiting
 ```
 
 ### 2. **Services Cloud Recommandés**
@@ -194,28 +196,28 @@ spec:
         app: user-service
     spec:
       containers:
-      - name: user-service
-        image: registry.yourdomain.com/user-service:latest
-        ports:
-        - containerPort: 8081
-        envFrom:
-        - configMapRef:
-            name: app-config
-        - secretRef:
-            name: app-secrets
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /actuator/health
-            port: 8081
-          initialDelaySeconds: 30
-          periodSeconds: 10
+        - name: user-service
+          image: registry.yourdomain.com/user-service:latest
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
 
 ---
 # k8s/service.yaml
@@ -228,8 +230,8 @@ spec:
   selector:
     app: user-service
   ports:
-  - port: 8081
-    targetPort: 8081
+    - port: 8081
+      targetPort: 8081
   type: ClusterIP
 
 ---
@@ -244,20 +246,20 @@ metadata:
     nginx.ingress.kubernetes.io/rate-limit: "100"
 spec:
   tls:
-  - hosts:
-    - api.yourdomain.com
-    secretName: api-tls
+    - hosts:
+        - api.yourdomain.com
+      secretName: api-tls
   rules:
-  - host: api.yourdomain.com
-    http:
-      paths:
-      - path: /api/v1/users
-        pathType: Prefix
-        backend:
-          service:
-            name: user-service
-            port:
-              number: 8081
+    - host: api.yourdomain.com
+      http:
+        paths:
+          - path: /api/v1/users
+            pathType: Prefix
+            backend:
+              service:
+                name: user-service
+                port:
+                  number: 8081
 ```
 
 ### 2. **Helm Chart**
@@ -398,14 +400,14 @@ scrape_configs:
   - job_name: 'spring-boot'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: 
-        - 'user-service:8081'
-        - 'character-service:8082'
+      - targets:
+          - 'user-service:8081'
+          - 'character-service:8082'
         # etc...
 
   - job_name: 'node-exporter'
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: [ 'node-exporter:9100' ]
 ```
 
 ### 2. **Alertes Critiques**
@@ -420,13 +422,13 @@ groups:
         for: 5m
         annotations:
           summary: "Service {{ $labels.job }} is down"
-          
+
       - alert: HighMemoryUsage
         expr: process_resident_memory_bytes / 1e9 > 0.9
         for: 10m
         annotations:
           summary: "High memory usage on {{ $labels.instance }}"
-          
+
       - alert: DatabaseConnectionsHigh
         expr: hikaricp_connections_active / hikaricp_connections_max > 0.8
         for: 5m
@@ -442,31 +444,31 @@ name: Deploy to Production
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
-          
+
       - name: Build with Maven
         run: mvn clean package -DskipTests
-        
+
       - name: Build Docker images
         run: |
           docker build -t ${{ secrets.REGISTRY }}/user-service:${{ github.sha }} ./backend/user-service
-          
+
       - name: Push to Registry
         run: |
           echo ${{ secrets.REGISTRY_PASSWORD }} | docker login -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
           docker push ${{ secrets.REGISTRY }}/user-service:${{ github.sha }}
-          
+
       - name: Deploy to Kubernetes
         run: |
           kubectl set image deployment/user-service user-service=${{ secrets.REGISTRY }}/user-service:${{ github.sha }} -n virtual-companion
@@ -475,6 +477,7 @@ jobs:
 ## ✅ Checklist Finale
 
 ### Avant le lancement :
+
 - [ ] Tests de charge (10k utilisateurs simulés)
 - [ ] Audit de sécurité complet
 - [ ] Plan de disaster recovery
@@ -487,6 +490,7 @@ jobs:
 - [ ] Terms of Service et Privacy Policy
 
 ### Post-lancement :
+
 - [ ] Monitoring 24/7 des premiers jours
 - [ ] Collecte des feedbacks utilisateurs
 - [ ] Optimisation des performances
@@ -496,6 +500,7 @@ jobs:
 ## 💰 Estimation des Coûts
 
 ### Infrastructure minimale (100-1000 users)
+
 - **Serveurs** : 150€/mois (Hetzner)
 - **GPU** : 100€/mois (Vast.ai)
 - **CDN** : 0€ (Cloudflare free)
@@ -503,6 +508,7 @@ jobs:
 - **Total** : ~250€/mois
 
 ### Infrastructure scale (1000-10k users)
+
 - **Kubernetes Cluster** : 500€/mois
 - **GPU Dedicated** : 400€/mois
 - **CDN Premium** : 50€/mois

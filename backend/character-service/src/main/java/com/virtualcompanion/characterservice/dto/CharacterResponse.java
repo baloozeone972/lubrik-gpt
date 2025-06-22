@@ -1,7 +1,7 @@
 package com.virtualcompanion.characterservice.dto;
 
 public class CharacterResponse {
-    
+
     private UUID id;
     private String name;
     private String description;

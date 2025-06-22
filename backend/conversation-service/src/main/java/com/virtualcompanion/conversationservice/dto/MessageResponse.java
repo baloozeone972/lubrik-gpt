@@ -1,7 +1,7 @@
 package com.virtualcompanion.conversationservice.dto;
 
 public class MessageResponse {
-    
+
     private String id;
     private String role; // user, assistant
     private String content;

@@ -7,101 +7,90 @@ public class AuthController {
     
     @PostMapping("/register")
     @Operation(summary = "Register a new user")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
-        UserResponse user = userService.createUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+    public ResponseEntity<ApiResponse<AuthResponse>> register(
+            @Valid @RequestBody RegisterRequest request,
+            HttpServletRequest httpRequest) {
+        
+        AuthResponse response = authService.register(request, httpRequest);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Registration successful", response));
     }
     
     @PostMapping("/login")
-    @Operation(summary = "User login")
-    public ResponseEntity<AuthResponse> login(
+    @Operation(summary = "Login user")
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
         
-        String ipAddress = getClientIpAddress(httpRequest);
-        String userAgent = httpRequest.getHeader("User-Agent");
-        
-        AuthResponse response = authService.login(request, ipAddress, userAgent);
-        return ResponseEntity.ok(response);
+        AuthResponse response = authService.login(request, httpRequest);
+        return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
     
-    @PostMapping("/logout")
-    @Operation(summary = "User logout")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void logout(@RequestHeader("Authorization") String token) {
-        // Remove "Bearer " prefix
-        String jwtToken = token.substring(7);
-        authService.logout(jwtToken);
+    @PostMapping("/login/2fa")
+    @Operation(summary = "Login with 2FA code")
+    public ResponseEntity<ApiResponse<AuthResponse>> loginWith2FA(
+            @Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest) {
+        
+        AuthResponse response = authService.loginWith2FA(request, httpRequest);
+        return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
     
     @PostMapping("/refresh")
     @Operation(summary = "Refresh access token")
-    public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
-        AuthResponse response = authService.refreshToken(request.getRefreshToken());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(
+            @Valid @RequestBody RefreshTokenRequest request) {
+        
+        AuthResponse response = authService.refreshToken(request);
+        return ResponseEntity.ok(ApiResponse.success("Token refreshed", response));
     }
     
-    @PostMapping("/verify-email")
+    @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Logout user")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @RequestHeader("Authorization") String token) {
+        
+        authService.logout(token);
+        return ResponseEntity.ok(ApiResponse.success("Logout successful", null));
+    }
+    
+    @GetMapping("/verify-email")
     @Operation(summary = "Verify email address")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
-        userService.verifyEmail(request.getToken());
+    public ResponseEntity<ApiResponse<Void>> verifyEmail(
+            @RequestParam String token) {
+        
+        userService.verifyEmail(token);
+        return ResponseEntity.ok(ApiResponse.success("Email verified successfully", null));
     }
     
     @PostMapping("/resend-verification")
+    @PreAuthorize("isAuthenticated()")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Resend verification email")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
-        userService.resendVerificationEmail(request.getEmail());
+    public ResponseEntity<ApiResponse<Void>> resendVerification(
+            @AuthenticationPrincipal User currentUser) {
+        
+        userService.resendVerificationEmail(currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success("Verification email sent", null));
     }
     
-    @PostMapping("/forgot-password")
+    @PostMapping("/password-reset")
     @Operation(summary = "Request password reset")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        userService.requestPasswordReset(request.getEmail());
+    public ResponseEntity<ApiResponse<Void>> requestPasswordReset(
+            @Valid @RequestBody PasswordResetRequest request) {
+        
+        authService.requestPasswordReset(request);
+        return ResponseEntity.ok(ApiResponse.success("Password reset email sent", null));
     }
     
-    @PostMapping("/reset-password")
+    @PostMapping("/password-reset/confirm")
     @Operation(summary = "Reset password with token")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        userService.resetPassword(request.getToken(), request.getNewPassword());
-    }
-    
-    @GetMapping("/check-email")
-    @Operation(summary = "Check if email is available")
-    public ResponseEntity<EmailAvailabilityResponse> checkEmailAvailability(@RequestParam String email) {
-        boolean available = authService.isEmailAvailable(email);
-        return ResponseEntity.ok(new EmailAvailabilityResponse(email, available));
-    }
-    
-    @GetMapping("/check-username")
-    @Operation(summary = "Check if username is available")
-    public ResponseEntity<UsernameAvailabilityResponse> checkUsernameAvailability(@RequestParam String username) {
-        boolean available = authService.isUsernameAvailable(username);
-        return ResponseEntity.ok(new UsernameAvailabilityResponse(username, available));
-    }
-    
-    @PostMapping("/validate-token")
-    @Operation(summary = "Validate JWT token")
-    public ResponseEntity<TokenValidationResponse> validateToken(@Valid @RequestBody ValidateTokenRequest request) {
-        TokenValidationResponse response = authService.validateToken(request.getToken());
-        return ResponseEntity.ok(response);
-    }
-    
-    private String getClientIpAddress(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
-        }
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
         
-        String xRealIp = request.getHeader("X-Real-IP");
-        if (xRealIp != null && !xRealIp.isEmpty()) {
-            return xRealIp;
-        }
-        
-        return request.getRemoteAddr();
+        authService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.success("Password reset successful", null));
     }
 }

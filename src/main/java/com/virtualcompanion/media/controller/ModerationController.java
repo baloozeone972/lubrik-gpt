@@ -11,7 +11,7 @@ public class ModerationController {
     public Mono<ResponseEntity<ModerationResult>> checkContent(
             @RequestBody @Valid ContentCheckRequest request,
             @AuthenticationPrincipal String userId) {
-        
+
         return contentService.checkContent(request)
                 .map(ResponseEntity::ok);
     }
@@ -21,7 +21,7 @@ public class ModerationController {
     public Mono<ResponseEntity<ReportResponse>> reportContent(
             @RequestBody @Valid ReportRequest request,
             @AuthenticationPrincipal String userId) {
-        
+
         return userService.createReport(request, userId)
                 .map(response -> ResponseEntity.status(201).body(response));
     }
@@ -33,7 +33,7 @@ public class ModerationController {
             @RequestParam(required = false) ReportStatus status,
             @RequestParam(required = false) ReportType type,
             Pageable pageable) {
-        
+
         return userService.getReports(status, type, pageable)
                 .map(ResponseEntity::ok);
     }
@@ -45,7 +45,7 @@ public class ModerationController {
             @PathVariable UUID reportId,
             @RequestBody @Valid ReportUpdateRequest request,
             @AuthenticationPrincipal String moderatorId) {
-        
+
         return userService.updateReport(reportId, request, moderatorId)
                 .map(ResponseEntity::ok);
     }
@@ -57,7 +57,7 @@ public class ModerationController {
             @PathVariable UUID userId,
             @RequestBody @Valid BanRequest request,
             @AuthenticationPrincipal String moderatorId) {
-        
+
         return userService.banUser(userId, request, moderatorId)
                 .map(ResponseEntity::ok);
     }
@@ -68,7 +68,7 @@ public class ModerationController {
     public Mono<ResponseEntity<Void>> unbanUser(
             @PathVariable UUID userId,
             @AuthenticationPrincipal String moderatorId) {
-        
+
         return userService.unbanUser(userId, moderatorId)
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
@@ -86,7 +86,7 @@ public class ModerationController {
     @Operation(summary = "Create moderation rule")
     public Mono<ResponseEntity<ModerationRule>> createRule(
             @RequestBody @Valid ModerationRuleRequest request) {
-        
+
         return autoService.createRule(request)
                 .map(rule -> ResponseEntity.status(201).body(rule));
     }
@@ -96,7 +96,7 @@ public class ModerationController {
     @Operation(summary = "Get moderation statistics")
     public Mono<ResponseEntity<ModerationStats>> getStats(
             @RequestParam(required = false) String period) {
-        
+
         return autoService.getStats(period)
                 .map(ResponseEntity::ok);
     }

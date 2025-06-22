@@ -26,7 +26,7 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         UUID userId = UUID.randomUUID();
-        
+
         testUser = User.builder()
                 .id(userId)
                 .email("test@example.com")
@@ -144,9 +144,9 @@ class UserServiceTest {
 
         // Then
         assertThat(response).isNotNull();
-        verify(profileRepository).save(argThat(profile -> 
-            profile.getDisplayName().equals("Updated Name") &&
-            profile.getBio().equals("Updated bio")
+        verify(profileRepository).save(argThat(profile ->
+                profile.getDisplayName().equals("Updated Name") &&
+                        profile.getBio().equals("Updated bio")
         ));
     }
 
@@ -157,7 +157,7 @@ class UserServiceTest {
         String userId = testUser.getId().toString();
         UpdateProfileRequest request1 = new UpdateProfileRequest();
         request1.setDisplayName("Name 1");
-        
+
         UpdateProfileRequest request2 = new UpdateProfileRequest();
         request2.setDisplayName("Name 2");
 

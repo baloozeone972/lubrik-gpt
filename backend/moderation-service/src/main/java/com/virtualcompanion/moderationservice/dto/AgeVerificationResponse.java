@@ -1,7 +1,7 @@
 package com.virtualcompanion.moderationservice.dto;
 
 public class AgeVerificationResponse {
-    
+
     private UUID verificationId;
     private String status; // verified, failed, pending_review, insufficient_data
     private Integer verifiedAge;

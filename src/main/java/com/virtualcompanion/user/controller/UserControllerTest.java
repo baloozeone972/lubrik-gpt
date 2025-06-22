@@ -43,8 +43,8 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/v1/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.token").value("jwt-token"))
                 .andExpect(jsonPath("$.user.email").value(mockUser.getEmail()));
@@ -62,8 +62,8 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/v1/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
 
         verify(userService, never()).register(any());
@@ -86,8 +86,8 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/v1/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").exists())
                 .andExpect(jsonPath("$.user.id").value(userId.toString()));
@@ -102,7 +102,7 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/v1/users/profile")
-                .with(jwt().jwt(jwt -> jwt.claim("sub", "test-user-id"))))
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", "test-user-id"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId.toString()))
                 .andExpect(jsonPath("$.email").value("test@example.com"));
@@ -118,7 +118,7 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/v1/users/profile")
-                .with(jwt().jwt(jwt -> jwt.claim("sub", "unknown-user"))))
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", "unknown-user"))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("User not found"));
     }
@@ -137,9 +137,9 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(put("/api/v1/users/profile")
-                .with(jwt().jwt(jwt -> jwt.claim("sub", "test-user-id")))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", "test-user-id")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId.toString()));
     }
@@ -153,7 +153,7 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(delete("/api/v1/users/profile")
-                .with(jwt().jwt(jwt -> jwt.claim("sub", "test-user-id"))))
+                        .with(jwt().jwt(jwt -> jwt.claim("sub", "test-user-id"))))
                 .andExpect(status().isNoContent());
 
         verify(userService, times(1)).deleteUser(anyString());

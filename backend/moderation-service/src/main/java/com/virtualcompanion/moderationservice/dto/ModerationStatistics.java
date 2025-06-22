@@ -1,7 +1,7 @@
 package com.virtualcompanion.moderationservice.dto;
 
 public class ModerationStatistics {
-    
+
     private LocalDateTime periodStart;
     private LocalDateTime periodEnd;
     private Long totalContentReviewed;
